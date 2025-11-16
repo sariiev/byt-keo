@@ -9,7 +9,6 @@ public class SoundAttachment extends MediaAttachment{
     private int duration;
     private int channels;  // must be 1 or 2
 
-    /* ========= Constructor ========= */
     public SoundAttachment(
             String source,
             int fileSize,
