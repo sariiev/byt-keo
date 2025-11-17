@@ -1,8 +1,19 @@
 package com.group3.keo;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class SoundAttachment extends MediaAttachment{
+    private static List<SoundAttachment> extent = new ArrayList<>();
 
     public static final int MaxDuration = 600;  // seconds
 
@@ -18,6 +29,7 @@ public class SoundAttachment extends MediaAttachment{
         super(source, fileSize);
         setDuration(duration);
         setChannels(channels);
+        addToExtent(this);
     }
 
     public int getDuration() {
@@ -46,4 +58,74 @@ public class SoundAttachment extends MediaAttachment{
         this.channels = channels;
     }
 
+    public static List<SoundAttachment> getExtent() {
+        return Collections.unmodifiableList(extent);
+    }
+
+    private static void addToExtent(SoundAttachment soundAttachment) {
+        if (soundAttachment == null) throw new IllegalArgumentException("null object cannot be added to the extent");
+        extent.add(soundAttachment);
+    }
+
+    public static void saveExtent(String path) {
+        try (FileWriter fileWriter = new FileWriter(path)) {
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create();
+
+            List<SoundAttachmentDTO> dtos = new ArrayList<>();
+            for (SoundAttachment soundAttachment : extent) {
+                dtos.add(soundAttachment.toDto());
+            }
+
+            gson.toJson(dtos, fileWriter);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void loadExtent(String path) {
+        try (FileReader fileReader = new FileReader(path)) {
+            Gson gson = new Gson();
+
+            Type listType = new TypeToken<List<SoundAttachmentDTO>>(){}.getType();
+            List<SoundAttachmentDTO> loaded = gson.fromJson(fileReader, listType);
+
+            extent.clear();
+
+            if (loaded != null) {
+                for (SoundAttachmentDTO dto : loaded) {
+                    SoundAttachment.fromDto(dto);
+                }
+            }
+        } catch (Exception ex) {
+            extent.clear();
+            ex.printStackTrace();
+        }
+    }
+
+    private static class SoundAttachmentDTO {
+        String source;
+        int fileSize;
+        int duration;
+        int channels;
+    }
+
+    private SoundAttachmentDTO toDto() {
+        SoundAttachmentDTO dto = new SoundAttachmentDTO();
+        dto.source = getSource();
+        dto.fileSize = getFileSize();
+        dto.duration = getDuration();
+        dto.channels = getChannels();
+        return dto;
+    }
+
+    private static SoundAttachment fromDto(SoundAttachmentDTO dto) {
+        return new SoundAttachment(
+                dto.source,
+                dto.fileSize,
+                dto.duration,
+                dto.channels
+        );
+    }
 }
