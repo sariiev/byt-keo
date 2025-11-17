@@ -1,0 +1,19 @@
+package com.group3.keo;
+
+public enum MediaFormat {
+    JPG,
+    JPEG,
+    PNG,
+    GIF,
+    WEBP,
+    SVG,
+
+    MP4,
+    MOV,
+    MKV,
+    WEBM,
+
+    MP3,
+    WAV,
+    OGG
+}
