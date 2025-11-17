@@ -12,11 +12,10 @@ public class SoundAttachment extends MediaAttachment{
     public SoundAttachment(
             String source,
             int fileSize,
-            Set<MediaFormat> allowedFormats,
             int duration,
             int channels
     ) {
-        super(source, fileSize, allowedFormats);
+        super(source, fileSize);
         setDuration(duration);
         setChannels(channels);
     }
