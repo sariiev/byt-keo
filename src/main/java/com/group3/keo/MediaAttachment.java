@@ -10,7 +10,7 @@ public abstract class MediaAttachment {
     private String source;
     private int fileSize;
 
-    public static final Set<MediaFormat> ALLOWED_FORMATS =
+    private static final Set<MediaFormat> ALLOWED_FORMATS =
             Collections.unmodifiableSet(EnumSet.of(
                     MediaFormat.JPG,
                     MediaFormat.JPEG,
@@ -27,7 +27,7 @@ public abstract class MediaAttachment {
                     MediaFormat.OGG
             ));
 
-    protected MediaAttachment(String source, int fileSize, Set<MediaFormat> allowedFormats) {
+    protected MediaAttachment(String source, int fileSize) {
         setSource(source);
         setFileSize(fileSize);
     }
