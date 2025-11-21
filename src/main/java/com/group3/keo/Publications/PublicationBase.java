@@ -1,4 +1,6 @@
-package com.group3.keo;
+package com.group3.keo.Publications;
+
+import com.group3.keo.MediaAttachments.MediaAttachment;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

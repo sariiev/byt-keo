@@ -1,4 +1,4 @@
-package com.group3.keo;
+package com.group3.keo.MediaAttachments;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -10,9 +10,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-public class SoundAttachment extends MediaAttachment{
+public class SoundAttachment extends MediaAttachment {
     private static List<SoundAttachment> extent = new ArrayList<>();
 
     public static final int MaxDuration = 600;  // seconds

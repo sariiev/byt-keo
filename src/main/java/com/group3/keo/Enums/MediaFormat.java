@@ -1,4 +1,4 @@
-package com.group3.keo;
+package com.group3.keo.Enums;
 
 public enum MediaFormat {
     JPG,

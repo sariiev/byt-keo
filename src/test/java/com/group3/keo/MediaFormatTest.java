@@ -1,5 +1,6 @@
 package com.group3.keo;
 
+import com.group3.keo.Enums.MediaFormat;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
