@@ -1,4 +1,4 @@
-package com.group3.keo;
+package com.group3.keo.MediaAttachments;
 import com.group3.keo.Enums.MediaFormat;
 
 import java.util.Collections;

@@ -1,12 +1,15 @@
 package com.group3.keo;
 
+import com.group3.keo.MediaAttachments.MediaAttachment;
+import com.group3.keo.MediaAttachments.SoundAttachment;
+import com.group3.keo.Publications.PublicationBase;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDateTime;
 
 public class PublicationBaseTest {
 
-    public static class PublicPublication extends PublicationBase{
+    public static class PublicPublication extends PublicationBase {
         public PublicPublication(String caption, LocalDateTime dateTime){
             super(caption, dateTime);
         }

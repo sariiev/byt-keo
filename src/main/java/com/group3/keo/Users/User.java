@@ -1,4 +1,4 @@
-package com.group3.keo;
+package com.group3.keo.Users;
 import java.util.*;
 
 public abstract class User {
