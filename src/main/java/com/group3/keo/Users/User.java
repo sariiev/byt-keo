@@ -130,6 +130,10 @@ public abstract class User {
         return followers.size();
     }
 
+    public static Map<UUID, User> getExtent() {
+        return Collections.unmodifiableMap(extent);
+    }
+
     public static void saveExtent(String path) {
         try (FileWriter fileWriter = new FileWriter(path)) {
             Gson gson = new GsonBuilder()
