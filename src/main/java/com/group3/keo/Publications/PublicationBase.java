@@ -1,9 +1,14 @@
-package com.group3.keo;
+package com.group3.keo.Publications;
+
+import com.group3.keo.MediaAttachments.MediaAttachment;
+import com.group3.keo.Users.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class PublicationBase {
 
@@ -12,20 +17,30 @@ public abstract class PublicationBase {
     private String caption;
     private final List<MediaAttachment> attachments = new ArrayList<>();
 
-    private LocalDateTime publicationDateTime;
+    private final LocalDateTime publicationDateTime;
 
-    private int likes = 0;
+    private final Set<User> likedBy = new HashSet<>();
+
     private int views = 0;
 
     private boolean wasEdited = false;
 
+    private final List<Comment> comments = new ArrayList<>();
+
     protected PublicationBase(String caption, LocalDateTime publicationDateTime) {
-        setPublicationDateTime(publicationDateTime);
+        if (publicationDateTime == null) {
+            throw new IllegalArgumentException("PublicationDateTime cannot be null");
+        }
+        this.publicationDateTime = publicationDateTime;
         setCaption(caption);
     }
 
+    private static boolean isNullOrBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
     private boolean hasEmptyCaption() {
-        return caption == null || caption.isBlank();
+        return isNullOrBlank(caption);
     }
 
     private void ensureContentNotEmpty() {
@@ -42,19 +57,13 @@ public abstract class PublicationBase {
 
     public void setCaption(String caption) {
 
-        if (caption == null) {
+        if (isNullOrBlank(caption)) {
             this.caption = null;
             ensureContentNotEmpty();
             return;
         }
 
         String trimmed = caption.trim();
-
-        if (trimmed.isEmpty()) {
-            this.caption = null;
-            ensureContentNotEmpty();
-            return;
-        }
 
         if (trimmed.length() > MaximumCaptionLength) {
             throw new IllegalArgumentException(
@@ -73,19 +82,16 @@ public abstract class PublicationBase {
         return publicationDateTime;
     }
 
-    public void setPublicationDateTime(LocalDateTime publicationDateTime) {
-        if (publicationDateTime == null) {
-            throw new IllegalArgumentException("PublicationDateTime cannot be null");
-        }
-        this.publicationDateTime = publicationDateTime;
-    }
-
     public int getLikes() {
-        return likes;
+        return likedBy.size();
     }
 
-    public void addLike() {
-        likes++;
+    public Set<User> getLikedBy() {
+        return Collections.unmodifiableSet(likedBy);
+    }
+
+    public void addLike(User user) {
+        likedBy.add(user);
     }
 
     public int getViews() {
@@ -123,5 +129,19 @@ public abstract class PublicationBase {
         }
 
         attachments.remove(attachment);
+    }
+
+    public List<Comment> getComments() {
+        return Collections.unmodifiableList(comments);
+    }
+
+    public void addComment(Comment comment) {
+        if (comment == null) {
+            throw new IllegalArgumentException("Comment cannot be null");
+        }
+        if (comment.getPublication() != this) {
+            throw new IllegalArgumentException("Comment does not belong to this publication.");
+        }
+        comments.add(comment);
     }
 }

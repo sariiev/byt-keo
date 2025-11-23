@@ -1,10 +1,11 @@
 package com.group3.keo;
 
+import com.group3.keo.Users.User;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserTest {
-    public static class PersonalUser extends User{
+    public static class PersonalUser extends User {
         public PersonalUser(String username, String name, String bio, Address address, Location location){
             super(username, name, bio, address, location);
         }
