@@ -1,5 +1,6 @@
 package com.group3.keo.Users;
 
+import java.util.List;
 import java.util.UUID;
 
 public class UserDTO {
@@ -16,6 +17,8 @@ public class UserDTO {
     public String websiteLink;
     public String email;
     public String phoneNumber;
+
+    public List<UUID> followers;
 
     public static class AddressDTO {
         public String country;

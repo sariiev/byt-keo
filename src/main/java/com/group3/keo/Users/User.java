@@ -160,6 +160,18 @@ public abstract class User {
                 for (UserDTO dto : loaded) {
                     fromDto(dto);
                 }
+
+                for (UserDTO dto : loaded) {
+                    User user = extent.get(dto.uid);
+                    if (dto.followers != null) {
+                        for (UUID followerUid : dto.followers) {
+                            User follower = extent.get(followerUid);
+                            if (follower != null) {
+                                user.addFollower(follower);
+                            }
+                        }
+                    }
+                }
             }
         } catch (Exception ex) {
             extent.clear();
@@ -189,6 +201,11 @@ public abstract class User {
             dto.websiteLink = businessUser.getWebsiteLink();
             dto.email = businessUser.getEmail();
             dto.phoneNumber = businessUser.getPhoneNumber();
+        }
+
+        dto.followers = new ArrayList<>();
+        for (User follower : followers) {
+            dto.followers.add(follower.uid);
         }
 
         return dto;
