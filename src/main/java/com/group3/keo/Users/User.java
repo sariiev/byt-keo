@@ -1,4 +1,6 @@
 package com.group3.keo.Users;
+import com.group3.keo.utils.Utils;
+
 import java.util.*;
 
 public abstract class User {
@@ -27,7 +29,7 @@ public abstract class User {
     }
 
     private void setUsername(String username) {
-        validateNonEmpty(username, "username");
+        Utils.validateNonEmpty(username, "username");
         this.username = username;
     }
 
@@ -36,7 +38,7 @@ public abstract class User {
     }
 
     public void setName(String name) {
-        validateNonEmpty(name, "name");
+        Utils.validateNonEmpty(name, "name");
         this.name = name;
     }
 
@@ -106,12 +108,6 @@ public abstract class User {
         return followers.size();
     }
 
-    private static void validateNonEmpty(String value, String fieldName) {
-        if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException(fieldName + " cannot be null or empty");
-        }
-    }
-
     public static class Address {
 
         private String country;
@@ -129,7 +125,7 @@ public abstract class User {
         }
 
         public void setCountry(String country) {
-            validateNonEmpty(country, "country");
+            Utils.validateNonEmpty(country, "country");
             this.country = country.trim();
         }
 
@@ -138,7 +134,7 @@ public abstract class User {
         }
 
         public void setCity(String city) {
-            validateNonEmpty(city, "city");
+            Utils.validateNonEmpty(city, "city");
             this.city = city.trim();
         }
 
@@ -147,7 +143,7 @@ public abstract class User {
         }
 
         public void setStreet(String street) {
-            validateNonEmpty(street, "street");
+            Utils.validateNonEmpty(street, "street");
             this.street = street.trim();
         }
 

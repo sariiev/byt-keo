@@ -1,9 +1,14 @@
 package com.group3.keo.Community;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.group3.keo.Enums.RoleType;
 import com.group3.keo.Users.PersonalUser;
 
 public class Role {
+
+    private static final Set<Role> extent = new HashSet<>();
 
     private RoleType roleType;      // HEAD, EDITOR, MEMBER
     private Community community;
@@ -13,6 +18,14 @@ public class Role {
         setRoleType(roleType);
         setCommunity(community);
         setUser(user);
+
+        for (Role r : extent) {
+            if (r.getCommunity().equals(community) && r.getUser().equals(user)) {
+                throw new IllegalStateException("A role for this (Community, User) pair already exists");
+            }
+        }
+
+        extent.add(this);
     }
 
     public RoleType getRoleType() {
@@ -48,4 +61,7 @@ public class Role {
         this.user = user;
     }
 
+    public static Set<Role> getExtent() {
+        return extent;
+    }
 }

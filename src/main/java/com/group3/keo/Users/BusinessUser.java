@@ -1,5 +1,7 @@
 package com.group3.keo.Users;
 
+import com.group3.keo.utils.Utils;
+
 public class BusinessUser extends User {
 
     private String websiteLink;
@@ -26,9 +28,7 @@ public class BusinessUser extends User {
     }
 
     public void setWebsiteLink(String websiteLink) {
-        if (websiteLink == null || websiteLink.trim().isEmpty()) {
-            throw new IllegalArgumentException("websiteLink cannot be null or empty");
-        }
+        Utils.validateWebsiteLink(websiteLink);
         this.websiteLink = websiteLink.trim();
     }
 
@@ -37,9 +37,7 @@ public class BusinessUser extends User {
     }
 
     public void setEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("email cannot be null or empty");
-        }
+        Utils.validateEmail(email);
         this.email = email.trim();
     }
 
@@ -48,9 +46,7 @@ public class BusinessUser extends User {
     }
 
     public void setPhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("phoneNumber cannot be null or empty");
-        }
+        Utils.validatePhoneNumber(phoneNumber);
         this.phoneNumber = phoneNumber.trim();
     }
 }

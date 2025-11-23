@@ -13,28 +13,37 @@ public class Message {
     public static final int MaximumCaptionLength = 2500;
 
     private String caption;
-    private LocalDateTime messageDateTime;
+    private final LocalDateTime messageDateTime;
 
     private boolean isRead;
     private boolean wasEdited;
     private boolean isDeleted;
 
     private final List<MediaAttachment> attachments = new ArrayList<>();
-    private Conversation conversation;
-    private User sender;
+    private final Conversation conversation;
+    private final User sender;
 
     public Message(User sender,
                    Conversation conversation,
                    String caption,
                    LocalDateTime messageDateTime) {
 
-        setSender(sender);
-        setConversation(conversation);
-        setMessageDateTime(messageDateTime);
-        setCaption(caption);
-        if (conversation != null) {
-            conversation.addMessage(this);
+        if (sender == null) {
+            throw new IllegalArgumentException("sender cannot be null");
         }
+        if (conversation == null) {
+            throw new IllegalArgumentException("conversation cannot be null");
+        }
+        if (messageDateTime == null) {
+            throw new IllegalArgumentException("messageDateTime cannot be null");
+        }
+
+        this.sender = sender;
+        this.conversation = conversation;
+        this.messageDateTime = messageDateTime;
+
+        setCaption(caption);
+        conversation.addMessage(this);
     }
 
     private boolean hasNonEmptyCaption() {
@@ -84,13 +93,6 @@ public class Message {
         return messageDateTime;
     }
 
-    public void setMessageDateTime(LocalDateTime messageDateTime) {
-        if (messageDateTime == null) {
-            throw new IllegalArgumentException("messageDateTime cannot be null");
-        }
-        this.messageDateTime = messageDateTime;
-    }
-
     public boolean isRead() {
         return isRead;
     }
@@ -126,21 +128,7 @@ public class Message {
         return conversation;
     }
 
-    public void setConversation(Conversation conversation) {
-        if (conversation == null) {
-            throw new IllegalArgumentException("conversation cannot be null");
-        }
-        this.conversation = conversation;
-    }
-
     public User getSender() {
         return sender;
-    }
-
-    public void setSender(User sender) {
-        if (sender == null) {
-            throw new IllegalArgumentException("sender cannot be null");
-        }
-        this.sender = sender;
     }
 }

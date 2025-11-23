@@ -4,8 +4,20 @@ import java.time.LocalDateTime;
 
 public class Quote extends Post{
 
-    public Quote(String caption, LocalDateTime publicationDateTime) {
+    private final PublicationBase referencedPublication;
+
+    public Quote(String caption,
+                 LocalDateTime publicationDateTime,
+                 PublicationBase referencedPublication) {
         super(caption, publicationDateTime);
+        if (referencedPublication == null) {
+            throw new IllegalArgumentException("Referenced publication cannot be null");
+        }
+        this.referencedPublication = referencedPublication;
+    }
+
+    public PublicationBase getReferencedPublication() {
+        return referencedPublication;
     }
 
 }

@@ -14,22 +14,13 @@ public class PromotionOrder {
     private final LocalDateTime creationDateTime;
     private PromotionStatus status;
 
-    public PromotionOrder(PromotionPlan plan,
-                          Integer customViews,
-                          double pricePerView) {
-
+    public PromotionOrder(PromotionPlan plan) {
         if (plan == null) {
             throw new IllegalArgumentException("plan cannot be null");
         }
-        if (pricePerView < 0) {
-            throw new IllegalArgumentException("pricePerView cannot be negative");
-        }
-
-        plan.validateCustomViews(customViews);
-
         this.plan = plan;
-        this.customViews = customViews;
-        this.pricePerView = pricePerView;
+        this.customViews = plan.getViews();
+        this.pricePerView = plan.getPricePerView();
         this.creationDateTime = LocalDateTime.now();
         this.status = PromotionStatus.IN_PROGRESS;
     }

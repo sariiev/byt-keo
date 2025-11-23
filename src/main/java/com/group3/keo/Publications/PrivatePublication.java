@@ -1,11 +1,8 @@
 package com.group3.keo.Publications;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 
-public class PrivatePublication extends PublicationBase{
-
-    public PrivatePublication(String caption, LocalDateTime publicationDateTime) {
-        super(caption, publicationDateTime);
-    }
-
+public interface PrivatePublication {
+    Set<String> getAllowedUsers();
+    boolean canView(String userId);
 }

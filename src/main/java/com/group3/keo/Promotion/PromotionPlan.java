@@ -73,7 +73,7 @@ public class PromotionPlan {
     }
 
     public PromotionOrder createOrder(Integer customViews) {
-        PromotionOrder order = new PromotionOrder(this, customViews, pricePerView);
+        PromotionOrder order = new PromotionOrder(this);
         orders.add(order);
         return order;
     }
