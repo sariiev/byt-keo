@@ -1,9 +1,19 @@
 package com.group3.keo.Users;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import com.group3.keo.MediaAttachments.SoundAttachment;
 import com.group3.keo.utils.Utils;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public abstract class User {
+    private static final Map<UUID, User> extent = new HashMap<>();
+
+    private final UUID uid;
 
     private static final int MAX_BIO_LENGTH = 300;
 
@@ -17,11 +27,23 @@ public abstract class User {
     private final Set<User> followers = new HashSet<>();
 
     protected User(String username, String name, String bio, Address address, Location location){
+        uid = UUID.randomUUID();
         setUsername(username);
         setName(name);
         setBio(bio);          // optional, but validated if not null
         setAddress(address);
         setLocation(location);
+        extent.put(uid, this);
+    }
+
+    protected User(UUID uid, String username, String name, String bio, Address address, Location location){
+        this.uid = uid;
+        setUsername(username);
+        setName(name);
+        setBio(bio);
+        setAddress(address);
+        setLocation(location);
+        extent.put(uid, this);
     }
 
     public String getUsername() {
@@ -106,6 +128,82 @@ public abstract class User {
 
     public int getFollowersCount() {
         return followers.size();
+    }
+
+    public static void saveExtent(String path) {
+        try (FileWriter fileWriter = new FileWriter(path)) {
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create();
+
+            List<UserDTO> dtos = new ArrayList<>();
+            for (User user : extent.values()) {
+                dtos.add(user.toDto());
+            }
+
+            gson.toJson(dtos, fileWriter);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void loadExtent(String path) {
+        try (FileReader fileReader = new FileReader(path)) {
+            Gson gson = new Gson();
+
+            Type listType = new TypeToken<List<UserDTO>>(){}.getType();
+            List<UserDTO> loaded = gson.fromJson(fileReader, listType);
+
+            extent.clear();
+
+            if (loaded != null) {
+                for (UserDTO dto : loaded) {
+                    fromDto(dto);
+                }
+            }
+        } catch (Exception ex) {
+            extent.clear();
+            ex.printStackTrace();
+        }
+    }
+
+    private UserDTO toDto() {
+        UserDTO dto = new UserDTO();
+        dto.uid = uid;
+
+        dto.type = (this instanceof BusinessUser) ? "business" : "personal";
+        dto.username = username;
+        dto.name = name;
+        dto.bio = bio;
+
+        dto.address = new UserDTO.AddressDTO();
+        dto.address.country = address.getCountry();
+        dto.address.city = address.getCity();
+        dto.address.street = address.getStreet();
+
+        dto.location = new UserDTO.LocationDTO();
+        dto.location.latitude = location.getLatitude();
+        dto.location.longitude = location.getLongitude();
+
+        if (this instanceof BusinessUser businessUser) {
+            dto.websiteLink = businessUser.getWebsiteLink();
+            dto.email = businessUser.getEmail();
+            dto.phoneNumber = businessUser.getPhoneNumber();
+        }
+
+        return dto;
+    }
+
+    private static User fromDto(UserDTO dto) {
+        User user;
+
+        if (dto.type.equals("personal")) {
+            user = new PersonalUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude));
+        } else {
+            user = new BusinessUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude), dto.websiteLink, dto.email, dto.phoneNumber);
+        }
+
+        return user;
     }
 
     public static class Address {
