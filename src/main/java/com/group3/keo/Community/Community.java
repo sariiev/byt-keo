@@ -1,13 +1,7 @@
 package com.group3.keo.Community;
 
 import com.group3.keo.Enums.CommunityTopic;
-import com.group3.keo.Enums.RoleType;
 import com.group3.keo.MediaAttachments.Picture;
-import com.group3.keo.Users.PersonalUser;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Community {
 
@@ -17,7 +11,7 @@ public class Community {
     private Picture avatar;
     private CommunityTopic topic;
 
-    public Community(String id, String name, CommunityTopic topic, Picture avatar) {
+    public Community(String name, CommunityTopic topic, Picture avatar) {
         setName(name);
         setTopic(topic);
         setAvatar(avatar);

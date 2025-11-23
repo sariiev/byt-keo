@@ -1,6 +1,7 @@
 package com.group3.keo.Publications;
 
 import com.group3.keo.MediaAttachments.MediaAttachment;
+import com.group3.keo.Users.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public abstract class PublicationBase {
 
     private final LocalDateTime publicationDateTime;
 
-    private final Set<String> likedBy = new HashSet<>();
+    private final Set<User> likedBy = new HashSet<>();
 
     private int views = 0;
 
@@ -85,15 +86,12 @@ public abstract class PublicationBase {
         return likedBy.size();
     }
 
-    public Set<String> getLikedBy() {
+    public Set<User> getLikedBy() {
         return Collections.unmodifiableSet(likedBy);
     }
 
-    public void addLike(String userId) {
-        if (isNullOrBlank(userId)) {
-            throw new IllegalArgumentException("userId cannot be null or blank");
-        }
-        likedBy.add(userId);
+    public void addLike(User user) {
+        likedBy.add(user);
     }
 
     public int getViews() {

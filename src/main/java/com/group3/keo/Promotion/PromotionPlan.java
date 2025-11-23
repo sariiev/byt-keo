@@ -18,9 +18,9 @@ public class PromotionPlan {
 
     public PromotionPlan(String name, int views, double pricePerView, boolean isCustom) {
         setName(name);
+        setCustom(isCustom);
         setViews(views);
         setPricePerView(pricePerView);
-        setCustom(isCustom);
     }
 
     public String getName() {
@@ -42,6 +42,11 @@ public class PromotionPlan {
         if (views <= 0) {
             throw new IllegalArgumentException("views must be positive");
         }
+
+        if (isCustom) {
+            validateCustomViews(views);
+        }
+
         this.views = views;
     }
 
@@ -72,7 +77,7 @@ public class PromotionPlan {
         return Collections.unmodifiableList(orders);
     }
 
-    public PromotionOrder createOrder(Integer customViews) {
+    public PromotionOrder createOrder() {
         PromotionOrder order = new PromotionOrder(this);
         orders.add(order);
         return order;

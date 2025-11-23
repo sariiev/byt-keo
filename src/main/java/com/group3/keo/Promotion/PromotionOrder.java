@@ -19,7 +19,13 @@ public class PromotionOrder {
             throw new IllegalArgumentException("plan cannot be null");
         }
         this.plan = plan;
-        this.customViews = plan.getViews();
+
+        if (plan.isCustom()) {
+            this.customViews = plan.getViews();
+        } else{
+            this.customViews = null;
+        }
+
         this.pricePerView = plan.getPricePerView();
         this.creationDateTime = LocalDateTime.now();
         this.status = PromotionStatus.IN_PROGRESS;
@@ -29,10 +35,6 @@ public class PromotionOrder {
 
     public PromotionPlan getPlan() {
         return plan;
-    }
-
-    public Integer getCustomViews() {
-        return customViews;
     }
 
     public double getPricePerView() {
@@ -55,7 +57,7 @@ public class PromotionOrder {
     }
 
     public int getViews() {
-        return (customViews != null) ? customViews : plan.getViews();
+        return !this.plan.isCustom() ? plan.getViews() : customViews;
     }
 
     public double getTotalPrice() {

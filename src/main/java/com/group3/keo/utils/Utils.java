@@ -6,22 +6,12 @@ public final class Utils {
     private Utils() {
     }
 
-    /**
-     * Validates that a string is not null or empty (after trimming).
-     *
-     * @param value the value to validate
-     * @param fieldName the name of the field for error messages
-     */
     public static void validateNonEmpty(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException(fieldName + " cannot be null or empty");
         }
     }
 
-    /**
-     * Basic email format validation.
-     * Does not check DNS — only the structural pattern.
-     */
     public static void validateEmail(String email) {
         validateNonEmpty(email, "email");
 
@@ -30,9 +20,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Basic URL validation (accepts http/https only).
-     */
     public static void validateWebsiteLink(String url) {
         validateNonEmpty(url, "websiteLink");
 
@@ -41,10 +28,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Very simple phone number validation.
-     * Accepts digits, spaces, +, -, parentheses.
-     */
     public static void validatePhoneNumber(String phoneNumber) {
         validateNonEmpty(phoneNumber, "phoneNumber");
 

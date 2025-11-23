@@ -1,5 +1,6 @@
 package com.group3.keo.Community;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,15 +16,15 @@ public class Role {
     private PersonalUser user;
 
     public Role(RoleType roleType, Community community, PersonalUser user) {
-        setRoleType(roleType);
-        setCommunity(community);
-        setUser(user);
-
         for (Role r : extent) {
             if (r.getCommunity().equals(community) && r.getUser().equals(user)) {
                 throw new IllegalStateException("A role for this (Community, User) pair already exists");
             }
         }
+
+        setRoleType(roleType);
+        setCommunity(community);
+        setUser(user);
 
         extent.add(this);
     }
@@ -62,6 +63,6 @@ public class Role {
     }
 
     public static Set<Role> getExtent() {
-        return extent;
+        return Collections.unmodifiableSet(extent);
     }
 }
