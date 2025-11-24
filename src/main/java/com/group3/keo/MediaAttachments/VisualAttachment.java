@@ -1,5 +1,7 @@
 package com.group3.keo.MediaAttachments;
 
+import java.util.UUID;
+
 public abstract class VisualAttachment extends MediaAttachment {
 
     public static final int MaxWidth = 3840;
@@ -13,6 +15,16 @@ public abstract class VisualAttachment extends MediaAttachment {
                                int width,
                                int height) {
         super(source, fileSize);
+        setWidth(width);
+        setHeight(height);
+    }
+
+    protected VisualAttachment(UUID uid,
+                               String source,
+                               int fileSize,
+                               int width,
+                               int height) {
+        super(uid, source, fileSize);
         setWidth(width);
         setHeight(height);
     }

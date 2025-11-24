@@ -1,5 +1,7 @@
 package com.group3.keo.MediaAttachments;
 
+import java.util.UUID;
+
 public class Video extends VisualAttachment {
 
     public static final int MaxDuration = 600;
@@ -17,6 +19,21 @@ public class Video extends VisualAttachment {
                  Integer channels) {
 
         super(source, fileSize, width, height);
+        setDuration(duration);
+        setHasAudio(hasAudio);
+        setChannels(channels);
+    }
+
+    public Video(UUID uid,
+                 String source,
+                 int fileSize,
+                 int width,
+                 int height,
+                 int duration,
+                 boolean hasAudio,
+                 Integer channels) {
+
+        super(uid, source, fileSize, width, height);
         setDuration(duration);
         setHasAudio(hasAudio);
         setChannels(channels);

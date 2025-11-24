@@ -1,5 +1,7 @@
 package com.group3.keo.MediaAttachments;
 
+import java.util.UUID;
+
 public class Picture extends VisualAttachment {
 
     private boolean isAnimated;
@@ -11,6 +13,17 @@ public class Picture extends VisualAttachment {
                    boolean isAnimated) {
 
         super(source, fileSize, width, height);
+        this.isAnimated = isAnimated;
+    }
+
+    public Picture(UUID uid,
+                   String source,
+                   int fileSize,
+                   int width,
+                   int height,
+                   boolean isAnimated) {
+
+        super(uid, source, fileSize, width, height);
         this.isAnimated = isAnimated;
     }
 
