@@ -1,11 +1,12 @@
-package com.group3.keo.Community;
+package com.group3.keo.community;
 
-import com.group3.keo.Enums.CommunityTopic;
-import com.group3.keo.MediaAttachments.Picture;
+import com.group3.keo.enums.CommunityTopic;
+import com.group3.keo.media.Picture;
+import com.group3.keo.utils.Utils;
 
 public class Community {
 
-    public static final int MaximumNameLength = 16;
+    public static final int MAX_NAME_LENGTH = 16;
 
     private String name;
     private Picture avatar;
@@ -22,16 +23,9 @@ public class Community {
     }
 
     public void setName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("name cannot be null or empty");
-        }
-        String trimmed = name.trim();
-        if (trimmed.length() > MaximumNameLength) {
-            throw new IllegalArgumentException(
-                    "name length must be ≤ " + MaximumNameLength
-            );
-        }
-        this.name = trimmed;
+        Utils.validateNonEmpty(name, "name");
+        Utils.validateMaxLength(name, "name", MAX_NAME_LENGTH);
+        this.name = name.trim();
     }
 
     public CommunityTopic getTopic() {
