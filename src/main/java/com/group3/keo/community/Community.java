@@ -38,7 +38,7 @@ public class Community {
         extent.put(uid, this);
     }
 
-    public Community(UUID uid, String name, CommunityTopic topic, Picture avatar) {
+    private Community(UUID uid, String name, CommunityTopic topic, Picture avatar) {
         this.uid = uid;
         setName(name);
         setTopic(topic);
