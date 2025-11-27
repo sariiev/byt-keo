@@ -5,8 +5,8 @@ import com.group3.keo.enums.CommunityTopic;
 import java.util.UUID;
 
 public class CommunityDTO {
-    UUID uid;
-    String name;
-    CommunityTopic topic;
-    UUID avatarUid;
+    public UUID uid;
+    public String name;
+    public CommunityTopic topic;
+    public UUID avatarUid;
 }
