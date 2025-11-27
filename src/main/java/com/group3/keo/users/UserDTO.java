@@ -1,11 +1,13 @@
 package com.group3.keo.users;
 
+import com.group3.keo.enums.UserType;
+
 import java.util.List;
 import java.util.UUID;
 
 public class UserDTO {
     public UUID uid;
-    public String type;
+    public UserType type;
 
     public String username;
     public String name;
