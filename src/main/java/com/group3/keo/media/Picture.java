@@ -1,11 +1,13 @@
-package com.group3.keo.MediaAttachments;
+package com.group3.keo.media;
 
 import java.util.UUID;
 
 public class Picture extends VisualAttachment {
-
+    // region === FIELDS ===
     private boolean isAnimated;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public Picture(String source,
                    int fileSize,
                    int width,
@@ -16,7 +18,7 @@ public class Picture extends VisualAttachment {
         this.isAnimated = isAnimated;
     }
 
-    public Picture(UUID uid,
+    protected Picture(UUID uid,
                    String source,
                    int fileSize,
                    int width,
@@ -26,7 +28,9 @@ public class Picture extends VisualAttachment {
         super(uid, source, fileSize, width, height);
         this.isAnimated = isAnimated;
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public boolean isAnimated() {
         return isAnimated;
     }
@@ -34,4 +38,5 @@ public class Picture extends VisualAttachment {
     public void setAnimated(boolean animated) {
         isAnimated = animated;
     }
+    // endregion
 }
