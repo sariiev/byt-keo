@@ -44,7 +44,7 @@ public class Conversation {
         extent.put(uid, this);
     }
 
-    public Conversation(UUID uid, Set<User> participants) {
+    private Conversation(UUID uid, Set<User> participants) {
         if (participants.size() != 2) {
             throw new IllegalArgumentException("Conversation must have exactly two participants");
         }
