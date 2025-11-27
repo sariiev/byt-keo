@@ -1,6 +1,7 @@
-package com.group3.keo.Enums;
+package com.group3.keo.enums;
 
 public enum PromotionStatus {
     IN_PROGRESS,
-    COMPLETED
+    COMPLETED,
+    CANCELED
 }
