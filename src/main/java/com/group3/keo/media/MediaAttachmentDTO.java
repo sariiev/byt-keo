@@ -1,4 +1,4 @@
-package com.group3.keo.MediaAttachments;
+package com.group3.keo.media;
 
 import java.util.UUID;
 
@@ -9,13 +9,13 @@ public class MediaAttachmentDTO {
     public String source;
     public int fileSize;
 
-    Integer width;
-    Integer height;
+    public Integer width;
+    public Integer height;
 
-    Integer duration;
-    Integer channels;
+    public Integer duration;
+    public Integer channels;
 
-    Boolean hasAudio;
+    public Boolean hasAudio;
 
-    Boolean isAnimated;
+    public Boolean isAnimated;
 }
