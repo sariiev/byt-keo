@@ -1,4 +1,4 @@
-package com.group3.keo.Enums;
+package com.group3.keo.enums;
 
 public enum RoleType {
     HEAD,
