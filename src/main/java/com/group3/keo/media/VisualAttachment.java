@@ -1,15 +1,19 @@
-package com.group3.keo.MediaAttachments;
+package com.group3.keo.media;
 
 import java.util.UUID;
 
 public abstract class VisualAttachment extends MediaAttachment {
+    // region === CONSTANTS ===
+    public static final int MAX_WIDTH = 3840;
+    public static final int MAX_HEIGHT = 2160;
+    // endregion
 
-    public static final int MaxWidth = 3840;
-    public static final int MaxHeight = 2160;
-
+    // region === FIELDS ===
     private int width;
     private int height;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     protected VisualAttachment(String source,
                                int fileSize,
                                int width,
@@ -28,15 +32,17 @@ public abstract class VisualAttachment extends MediaAttachment {
         setWidth(width);
         setHeight(height);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public int getWidth() {
         return width;
     }
 
     public void setWidth(int width) {
-        if (width <= 0 || width > MaxWidth) {
+        if (width <= 0 || width > MAX_WIDTH) {
             throw new IllegalArgumentException(
-                    "width must be between 1 and " + MaxWidth
+                    "width must be between 1 and " + MAX_WIDTH
             );
         }
         this.width = width;
@@ -47,11 +53,12 @@ public abstract class VisualAttachment extends MediaAttachment {
     }
 
     public void setHeight(int height) {
-        if (height <= 0 || height > MaxHeight) {
+        if (height <= 0 || height > MAX_HEIGHT) {
             throw new IllegalArgumentException(
-                    "height must be between 1 and " + MaxHeight
+                    "height must be between 1 and " + MAX_HEIGHT
             );
         }
         this.height = height;
     }
+    // endregion
 }

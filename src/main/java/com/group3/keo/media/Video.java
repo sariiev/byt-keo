@@ -1,15 +1,19 @@
-package com.group3.keo.MediaAttachments;
+package com.group3.keo.media;
 
 import java.util.UUID;
 
 public class Video extends VisualAttachment {
+    // region === CONSTANTS ===
+    public static final int MAX_DURATION = 600;
+    // endregion
 
-    public static final int MaxDuration = 600;
-
-    private int duration;       // in seconds
+    // region === FIELDS ===
+    private int duration; // in seconds
     private boolean hasAudio;
-    private Integer channels;   // [0..1], value in {1,2} if present
+    private Integer channels;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public Video(String source,
                  int fileSize,
                  int width,
@@ -24,7 +28,7 @@ public class Video extends VisualAttachment {
         setChannels(channels);
     }
 
-    public Video(UUID uid,
+    protected Video(UUID uid,
                  String source,
                  int fileSize,
                  int width,
@@ -38,21 +42,23 @@ public class Video extends VisualAttachment {
         setHasAudio(hasAudio);
         setChannels(channels);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public int getDuration() {
         return duration;
     }
 
     public void setDuration(int duration) {
-        if (duration < 0 || duration > MaxDuration) {
+        if (duration < 0 || duration > MAX_DURATION) {
             throw new IllegalArgumentException(
-                    "duration must be between 0 and " + MaxDuration + " seconds"
+                    "duration must be between 0 and " + MAX_DURATION + " seconds"
             );
         }
         this.duration = duration;
     }
 
-    public boolean isHasAudio() {
+    public boolean hasAudio() {
         return hasAudio;
     }
 
@@ -80,4 +86,5 @@ public class Video extends VisualAttachment {
         }
         this.channels = channels;
     }
+    // endregion
 }

@@ -1,23 +1,18 @@
-package com.group3.keo.MediaAttachments;
+package com.group3.keo.media;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 public class SoundAttachment extends MediaAttachment {
-    public static final int MaxDuration = 600;  // seconds
+    // region === CONSTANTS ===
+    public static final int MAX_DURATION = 600;  // seconds
+    // endregion
 
+    // region === FIELDS ===
     private int duration;
-    private int channels;  // must be 1 or 2
+    private int channels;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public SoundAttachment(
             String source,
             int fileSize,
@@ -29,7 +24,7 @@ public class SoundAttachment extends MediaAttachment {
         setChannels(channels);
     }
 
-    public SoundAttachment(
+    protected SoundAttachment(
             UUID uid,
             String source,
             int fileSize,
@@ -40,15 +35,17 @@ public class SoundAttachment extends MediaAttachment {
         setDuration(duration);
         setChannels(channels);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public int getDuration() {
         return duration;
     }
 
     public void setDuration(int duration) {
-        if (duration < 0 || duration > MaxDuration) {
+        if (duration < 0 || duration > MAX_DURATION) {
             throw new IllegalArgumentException(
-                    "Duration must be between 0 and " + MaxDuration + " seconds"
+                    "Duration must be between 0 and " + MAX_DURATION + " seconds"
             );
         }
         this.duration = duration;
@@ -66,4 +63,5 @@ public class SoundAttachment extends MediaAttachment {
         }
         this.channels = channels;
     }
+    // endregion
 }
