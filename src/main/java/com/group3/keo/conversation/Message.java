@@ -55,8 +55,8 @@ public class Message {
         this.conversation = conversation;
         this.messageDateTime = LocalDateTime.now();
 
-        setCaption(caption);
         addAttachments(attachments);
+        setCaption(caption);
 
         ensureContentNotEmpty();
 
@@ -89,8 +89,8 @@ public class Message {
         this.wasEdited = wasEdited;
         this.isDeleted = isDeleted;
 
-        setCaption(caption);
         addAttachments(attachments);
+        setCaption(caption);
 
         ensureContentNotEmpty();
 
