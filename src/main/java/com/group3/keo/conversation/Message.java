@@ -64,7 +64,7 @@ public class Message {
         extent.put(uid, this);
     }
 
-    public Message(UUID uid,
+    private Message(UUID uid,
                    User sender,
                    Conversation conversation,
                    String caption,
