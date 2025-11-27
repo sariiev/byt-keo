@@ -1,8 +1,7 @@
-package com.group3.keo.Users;
+package com.group3.keo.users;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.group3.keo.MediaAttachments.SoundAttachment;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -44,6 +43,10 @@ public abstract class User {
         setAddress(address);
         setLocation(location);
         extent.put(uid, this);
+    }
+
+    public UUID getUid() {
+        return uid;
     }
 
     public String getUsername() {

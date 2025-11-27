@@ -1,4 +1,4 @@
-package com.group3.keo.Users;
+package com.group3.keo.users;
 
 import java.util.List;
 import java.util.UUID;

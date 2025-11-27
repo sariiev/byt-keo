@@ -1,4 +1,4 @@
-package com.group3.keo.Publications;
+package com.group3.keo.publications;
 
 import java.time.LocalDateTime;
 

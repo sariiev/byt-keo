@@ -1,7 +1,7 @@
-package com.group3.keo.Publications;
+package com.group3.keo.publications;
 
-import com.group3.keo.MediaAttachments.MediaAttachment;
-import com.group3.keo.Users.User;
+import com.group3.keo.media.MediaAttachment;
+import com.group3.keo.users.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

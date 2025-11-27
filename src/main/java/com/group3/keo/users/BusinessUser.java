@@ -1,4 +1,4 @@
-package com.group3.keo.Users;
+package com.group3.keo.users;
 
 import com.group3.keo.utils.Utils;
 
@@ -25,7 +25,7 @@ public class BusinessUser extends User {
         setPhoneNumber(phoneNumber);
     }
 
-    public BusinessUser(UUID uid,
+    protected BusinessUser(UUID uid,
                         String username,
                         String name,
                         String bio,
