@@ -2,6 +2,7 @@ package com.group3.keo.users;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.group3.keo.enums.UserType;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -190,7 +191,7 @@ public abstract class User {
         UserDTO dto = new UserDTO();
         dto.uid = uid;
 
-        dto.type = (this instanceof BusinessUser) ? "business" : "personal";
+        dto.type = (this instanceof PersonalUser) ? UserType.PERSONAL : UserType.BUSINESS;
         dto.username = username;
         dto.name = name;
         dto.bio = bio;
@@ -221,7 +222,7 @@ public abstract class User {
     private static User fromDto(UserDTO dto) {
         User user;
 
-        if (dto.type.equals("personal")) {
+        if (dto.type == UserType.PERSONAL) {
             user = new PersonalUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude));
         } else {
             user = new BusinessUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude), dto.websiteLink, dto.email, dto.phoneNumber);
