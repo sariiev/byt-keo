@@ -1,9 +1,15 @@
-package com.group3.keo.publications;
+package com.group3.keo.publications.base;
+
+import com.group3.keo.enums.PublicationAuthorType;
+import com.group3.keo.enums.PublicationType;
 
 import java.util.List;
 import java.util.UUID;
 
 public class PublicationBaseDTO {
+    public PublicationType type;
+    public PublicationAuthorType authorType;
+    public UUID author;
     public UUID uid;
     public String caption;
     public List<UUID> attachments;
@@ -15,9 +21,10 @@ public class PublicationBaseDTO {
 
     public boolean wasPromoted; // for Post
 
-    public boolean referencedPublication; // for Quote
+    public UUID referencedPublication; // for Quote
 
-    public boolean commentedPublication; // for Comment
+    public UUID commentedPublication; // for Comment
 
-
+    public boolean isPrivate;
+    public List<UUID> allowedUsers;
 }
