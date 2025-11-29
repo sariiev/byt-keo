@@ -5,11 +5,13 @@ import com.group3.keo.utils.Utils;
 import java.util.UUID;
 
 public class BusinessUser extends User {
-
+    // region === FIELDS ===
     private String websiteLink;
     private String email;
     private String phoneNumber;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public BusinessUser(String username,
                         String name,
                         String bio,
@@ -26,20 +28,22 @@ public class BusinessUser extends User {
     }
 
     protected BusinessUser(UUID uid,
-                        String username,
-                        String name,
-                        String bio,
-                        User.Address address,
-                        User.Location location,
-                        String websiteLink,
-                        String email,
-                        String phoneNumber) {
+                           String username,
+                           String name,
+                           String bio,
+                           User.Address address,
+                           User.Location location,
+                           String websiteLink,
+                           String email,
+                           String phoneNumber) {
         super(uid, username, name, bio, address, location);
         setWebsiteLink(websiteLink);
         setEmail(email);
         setPhoneNumber(phoneNumber);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public String getWebsiteLink() {
         return websiteLink;
     }
@@ -66,4 +70,5 @@ public class BusinessUser extends User {
         Utils.validatePhoneNumber(phoneNumber);
         this.phoneNumber = phoneNumber.trim();
     }
+    // endregion
 }
