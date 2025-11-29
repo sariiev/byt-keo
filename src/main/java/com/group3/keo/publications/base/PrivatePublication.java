@@ -1,10 +1,14 @@
-package com.group3.keo.publications;
+package com.group3.keo.publications.base;
 
 import com.group3.keo.users.User;
 
 import java.util.Set;
 
 public interface PrivatePublication {
-    Set<User> getAllowedUsers();
     boolean canView(User user);
+
+    void addAllowedUser(User user);
+    void removeAllowedUser(User user);
+
+    Set<User> getAllowedUsers();
 }
