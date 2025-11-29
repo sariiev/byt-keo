@@ -106,7 +106,7 @@ public class Message {
 
     private void ensureContentNotEmpty() {
         if (!hasCaption() && attachments.isEmpty()) {
-            throw new IllegalStateException("Message must have a non-empty caption or at least one attachment.");
+            throw new IllegalStateException("Message must have a non-empty caption or at least one attachment");
         }
     }
     // endregion
@@ -125,7 +125,7 @@ public class Message {
 
         if (caption == null || caption.trim().isEmpty()) {
             if (attachments.isEmpty()) {
-                throw new IllegalStateException("Message must have a non-empty caption or at least one attachment.");
+                throw new IllegalStateException("Message must have a non-empty caption or at least one attachment");
             }
 
             this.caption = null;
@@ -212,7 +212,7 @@ public class Message {
         }
 
         if (!hasCaption() && attachments.size() == 1) {
-            throw new IllegalStateException("Message must have a non-empty caption or at least one attachment.");
+            throw new IllegalStateException("Message must have a non-empty caption or at least one attachment");
         }
 
         attachments.remove(attachment);
@@ -314,6 +314,7 @@ public class Message {
                 if (attachment == null) {
                     throw new IllegalStateException("media attachment not found for UID: " + attachmentUid);
                 }
+                attachments.add(attachment);
             }
         }
 
