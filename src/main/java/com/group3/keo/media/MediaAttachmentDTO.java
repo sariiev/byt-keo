@@ -1,10 +1,12 @@
 package com.group3.keo.media;
 
+import com.group3.keo.enums.MediaAttachmentType;
+
 import java.util.UUID;
 
 public class MediaAttachmentDTO {
     public UUID uid;
-    public String type;
+    public MediaAttachmentType type;
 
     public String source;
     public int fileSize;

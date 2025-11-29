@@ -2,6 +2,7 @@ package com.group3.keo.media;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.group3.keo.enums.MediaAttachmentType;
 import com.group3.keo.enums.MediaFormat;
 import com.group3.keo.utils.Utils;
 
@@ -143,13 +144,13 @@ public abstract class MediaAttachment {
 
         switch (this) {
             case Picture p -> {
-                dto.type = "picture";
+                dto.type = MediaAttachmentType.PICTURE;
                 dto.width = p.getWidth();
                 dto.height = p.getHeight();
                 dto.isAnimated = p.isAnimated();
             }
             case Video v -> {
-                dto.type = "video";
+                dto.type = MediaAttachmentType.VIDEO;
                 dto.width = v.getWidth();
                 dto.height = v.getHeight();
                 dto.duration = v.getDuration();
@@ -157,29 +158,26 @@ public abstract class MediaAttachment {
                 dto.channels = v.getChannels();
             }
             case SoundAttachment sa -> {
-                dto.type = "sound";
+                dto.type = MediaAttachmentType.SOUND;
                 dto.duration = sa.getDuration();
                 dto.channels = sa.getChannels();
             }
-            default -> {
-                throw new IllegalStateException("Unknown MediaAttachment type: " + getClass());
-            }
+            default ->
+                    throw new IllegalStateException("Unknown MediaAttachment type: " + getClass());
         }
         return dto;
     }
 
     private static MediaAttachment fromDto(MediaAttachmentDTO dto) {
         return switch (dto.type) {
-            case "picture" ->
+            case PICTURE ->
                     new Picture(dto.uid, dto.source, dto.fileSize, dto.width, dto.height, dto.isAnimated);
-            case "video" ->
+            case VIDEO ->
                     new Video(dto.uid, dto.source, dto.fileSize, dto.width, dto.height, dto.duration, dto.hasAudio, dto.channels);
-            case "sound" ->
+            case SOUND ->
                     new SoundAttachment(dto.uid, dto.source, dto.fileSize, dto.duration, dto.channels);
-
             default ->
                     throw new IllegalStateException("Unknown MediaAttachment type: " + dto.type);
-
         };
     }
     // endregion
