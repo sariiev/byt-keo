@@ -8,8 +8,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class PrivatePost extends Post implements PrivatePublication {
+    // region === FIELDS ===
     private final Set<User> allowedUsers = new HashSet<>();
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public PrivatePost(User author, String caption, List<MediaAttachment> attachments, Set<User> allowedUsers) {
         super(author, caption, attachments);
 
@@ -27,7 +30,16 @@ public class PrivatePost extends Post implements PrivatePublication {
         }
         this.addAllowedUser(author);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
+    @Override
+    public Set<User> getAllowedUsers() {
+        return Collections.unmodifiableSet(allowedUsers);
+    }
+    // endregion
+
+    // region === MUTATORS ===
     @Override
     public void addAllowedUser(User user) {
         if (user == null) {
@@ -49,14 +61,12 @@ public class PrivatePost extends Post implements PrivatePublication {
 
         allowedUsers.remove(user);
     }
+    // endregion
 
-    @Override
-    public Set<User> getAllowedUsers() {
-        return Collections.unmodifiableSet(allowedUsers);
-    }
-
+    // region === HELPERS ===
     @Override
     public boolean canView(User user) {
         return allowedUsers.contains(user);
     }
+    // endregion
 }

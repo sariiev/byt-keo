@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.UUID;
 
 public class Comment extends PublicationBase {
-
+    // region === FIELDS ===
     private final PublicationBase commentedPublication;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public Comment(PublicationAuthor author,
                    String caption,
                    PublicationBase commentedPublication,
@@ -41,11 +43,15 @@ public class Comment extends PublicationBase {
         this.commentedPublication = commentedPublication;
         commentedPublication.addComment(this);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public PublicationBase getCommentedPublication() {
         return commentedPublication;
     }
+    // endregion
 
+    // region === HELPERS ===
     public boolean canView(User user) {
         if (commentedPublication instanceof PrivatePublication privatePublication) {
             return privatePublication.canView(user);
@@ -53,4 +59,5 @@ public class Comment extends PublicationBase {
 
         return true;
     }
+    // endregion
 }

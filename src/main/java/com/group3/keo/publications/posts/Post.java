@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class Post extends PublicationBase {
-
+    // region === FIELDS ===
     protected boolean wasPromoted = false;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     protected Post(PublicationAuthor author, String caption, List<MediaAttachment> attachments) {
         super(author, caption, attachments);
     }
@@ -20,7 +22,9 @@ public abstract class Post extends PublicationBase {
         super(uid, author, caption, attachments, publicationDateTime, views, wasEdited);
         this.wasPromoted = wasPromoted;
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public boolean wasPromoted() {
         return wasPromoted;
     }
@@ -31,4 +35,5 @@ public abstract class Post extends PublicationBase {
         }
         this.wasPromoted = wasPromoted;
     }
+    // endregion
 }

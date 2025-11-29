@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PublicQuote extends Quote implements PublicPublication {
+    // region === CONSTRUCTORS ===
     public PublicQuote(PublicationAuthor author, String caption, PublicationBase referencedPublication, List<MediaAttachment> attachments) {
         super(author, caption, attachments, referencedPublication);
     }
@@ -17,4 +18,5 @@ public class PublicQuote extends Quote implements PublicPublication {
     public PublicQuote(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, PublicationBase referencedPublication, LocalDateTime publicationDateTime,  int views, boolean wasEdited, boolean wasPromoted) {
         super(uid, author, caption, attachments, referencedPublication, publicationDateTime, views, wasEdited, wasPromoted);
     }
+    // endregion
 }

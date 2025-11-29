@@ -9,8 +9,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class PrivateQuote extends Quote implements PrivatePublication {
+    // region === FIELDS ===
     private final Set<User> allowedUsers = new HashSet<>();
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public PrivateQuote(User author, String caption, PublicationBase referencedPublication, List<MediaAttachment> attachments, Set<User> allowedUsers) {
         super(author, caption, attachments, referencedPublication);
 
@@ -28,7 +31,16 @@ public class PrivateQuote extends Quote implements PrivatePublication {
         }
         this.addAllowedUser(author);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
+    @Override
+    public Set<User> getAllowedUsers() {
+        return Collections.unmodifiableSet(allowedUsers);
+    }
+    // endregion
+
+    // region === MUTATORS ===
     @Override
     public void addAllowedUser(User user) {
         if (user == null) {
@@ -50,14 +62,12 @@ public class PrivateQuote extends Quote implements PrivatePublication {
 
         allowedUsers.remove(user);
     }
+    // endregion
 
-    @Override
-    public Set<User> getAllowedUsers() {
-        return Collections.unmodifiableSet(allowedUsers);
-    }
-
+    // region === HELPERS ===
     @Override
     public boolean canView(User user) {
         return allowedUsers.contains(user);
     }
+    // endregion
 }

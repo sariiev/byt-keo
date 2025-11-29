@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PublicPost extends Post implements PublicPublication {
+    // region === CONSTRUCTORS ===
     public PublicPost(PublicationAuthor author, String caption, List<MediaAttachment> attachments) {
         super(author, caption, attachments);
     }
@@ -16,4 +17,5 @@ public class PublicPost extends Post implements PublicPublication {
     public PublicPost(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, LocalDateTime publicationDateTime, int views, boolean wasEdited, boolean wasPromoted) {
         super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, wasPromoted);
     }
+    // endregion
 }

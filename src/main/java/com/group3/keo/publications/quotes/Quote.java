@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.UUID;
 
 public class Quote extends Post {
-
+    // region === FIELDS ===
     private final PublicationBase referencedPublication;
+    // endregion
 
+    // region === CONSTRUCTORS ===
     public Quote(PublicationAuthor author,
                  String caption,
                  List<MediaAttachment> attachments,
@@ -39,9 +41,11 @@ public class Quote extends Post {
         }
         this.referencedPublication = referencedPublication;
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public PublicationBase getReferencedPublication() {
         return referencedPublication;
     }
-
+    // endregion
 }
