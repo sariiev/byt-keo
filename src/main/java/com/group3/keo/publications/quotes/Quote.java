@@ -1,20 +1,39 @@
-package com.group3.keo.publications;
+package com.group3.keo.publications.quotes;
 
 import com.group3.keo.media.MediaAttachment;
+import com.group3.keo.publications.base.PublicationAuthor;
+import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.publications.posts.Post;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public class Quote extends Post {
 
     private final PublicationBase referencedPublication;
 
-    public Quote(String caption,
-                 LocalDateTime publicationDateTime,
+    public Quote(PublicationAuthor author,
+                 String caption,
+                 List<MediaAttachment> attachments,
+                 PublicationBase referencedPublication) {
+        super(author, caption, attachments);
+        if (referencedPublication == null) {
+            throw new IllegalArgumentException("Referenced publication cannot be null");
+        }
+        this.referencedPublication = referencedPublication;
+    }
+
+    public Quote(UUID uid,
+                 PublicationAuthor author,
+                 String caption,
+                 List<MediaAttachment> attachments,
                  PublicationBase referencedPublication,
-                 List<MediaAttachment> attachments) {
-        super(caption, publicationDateTime, attachments);
+                 LocalDateTime publicationDateTime,
+                 int views,
+                 boolean wasEdited,
+                 boolean wasPromoted) {
+        super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, wasPromoted);
         if (referencedPublication == null) {
             throw new IllegalArgumentException("Referenced publication cannot be null");
         }
