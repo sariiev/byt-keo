@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.group3.keo.enums.CommunityTopic;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.media.Picture;
+import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -13,7 +14,7 @@ import java.io.FileWriter;
 import java.lang.reflect.Type;
 import java.util.*;
 
-public class Community {
+public class Community implements PublicationAuthor {
     // region === CONSTANTS ===
     public static final int MAX_NAME_LENGTH = 16;
     // endregion

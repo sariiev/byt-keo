@@ -3,6 +3,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.group3.keo.enums.UserType;
+import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -10,7 +11,7 @@ import java.io.FileWriter;
 import java.lang.reflect.Type;
 import java.util.*;
 
-public abstract class User {
+public abstract class User implements PublicationAuthor {
     private static final Map<UUID, User> extent = new HashMap<>();
 
     private final UUID uid;
