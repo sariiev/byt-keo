@@ -12,11 +12,18 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 public abstract class User implements PublicationAuthor {
-    private static final Map<UUID, User> extent = new HashMap<>();
-
-    private final UUID uid;
-
+    // region === CONSTANTS ===
     private static final int MAX_BIO_LENGTH = 300;
+    private static final int MAX_USERNAME_LENGTH = 16;
+    private static final int MAX_NAME_LENGTH = 16;
+    // endregion
+
+    // region === EXTENT ===
+    private static final Map<UUID, User> extent = new HashMap<>();
+    // endregion
+
+    // region === FIELDS ===
+    private final UUID uid;
 
     private String username;
     private String name;
@@ -26,7 +33,9 @@ public abstract class User implements PublicationAuthor {
     private Location location;
 
     private final Set<User> followers = new HashSet<>();
+    // endregion
 
+    // region === CONSTRUCTORS ===
     protected User(String username, String name, String bio, Address address, Location location){
         uid = UUID.randomUUID();
         setUsername(username);
@@ -46,7 +55,9 @@ public abstract class User implements PublicationAuthor {
         setLocation(location);
         extent.put(uid, this);
     }
+    // endregion
 
+    // region === GETTERS & SETTERS ===
     public UUID getUid() {
         return uid;
     }
@@ -57,7 +68,8 @@ public abstract class User implements PublicationAuthor {
 
     private void setUsername(String username) {
         Utils.validateNonEmpty(username, "username");
-        this.username = username;
+        Utils.validateMaxLength(username, "username", MAX_USERNAME_LENGTH);
+        this.username = username.trim();
     }
 
     public String getName() {
@@ -66,6 +78,7 @@ public abstract class User implements PublicationAuthor {
 
     public void setName(String name) {
         Utils.validateNonEmpty(name, "name");
+        Utils.validateMaxLength(name, "name", MAX_NAME_LENGTH);
         this.name = name;
     }
 
@@ -74,20 +87,13 @@ public abstract class User implements PublicationAuthor {
     }
 
     public void setBio(String bio) {
-        if (bio == null) {
+        if (bio == null || bio.trim().isEmpty()) {
             this.bio = null;
             return;
         }
 
-        String trimmed = bio.trim();
-        if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException("bio cannot be empty if provided");
-        }
-        if (trimmed.length() > MAX_BIO_LENGTH) {
-            throw new IllegalArgumentException(
-                    "bio length must be <= " + MAX_BIO_LENGTH);
-        }
-        this.bio = trimmed;
+        Utils.validateMaxLength(bio, "bio", MAX_BIO_LENGTH);
+        this.bio = bio.trim();
     }
 
     public Address getAddress() {
@@ -112,11 +118,33 @@ public abstract class User implements PublicationAuthor {
         this.location = location;
     }
 
-
     public Set<User> getFollowers() {
         return Collections.unmodifiableSet(followers);
     }
 
+    public int getFollowersCount() {
+        return followers.size();
+    }
+
+    public static Map<UUID, User> getExtent() {
+        return Collections.unmodifiableMap(extent);
+    }
+    // endregion
+
+    // region === EQUALS & HASHCODE ===
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof User user)) return false;
+        return Objects.equals(uid, user.uid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(uid);
+    }
+    // endregion
+
+    // region === MUTATORS ===
     public void addFollower(User follower) {
         if (follower == null) {
             throw new IllegalArgumentException("follower cannot be null");
@@ -128,17 +156,14 @@ public abstract class User implements PublicationAuthor {
     }
 
     public void removeFollower(User follower) {
+        if (follower == null) {
+            return;
+        }
         followers.remove(follower);
     }
+    // endregion
 
-    public int getFollowersCount() {
-        return followers.size();
-    }
-
-    public static Map<UUID, User> getExtent() {
-        return Collections.unmodifiableMap(extent);
-    }
-
+    // region === PERSISTENCE ===
     public static void saveExtent(String path) {
         try (FileWriter fileWriter = new FileWriter(path)) {
             Gson gson = new GsonBuilder()
@@ -187,7 +212,9 @@ public abstract class User implements PublicationAuthor {
             ex.printStackTrace();
         }
     }
+    // endregion
 
+    // region === DTO CONVERSION ===
     private UserDTO toDto() {
         UserDTO dto = new UserDTO();
         dto.uid = uid;
@@ -221,17 +248,16 @@ public abstract class User implements PublicationAuthor {
     }
 
     private static User fromDto(UserDTO dto) {
-        User user;
-
-        if (dto.type == UserType.PERSONAL) {
-            user = new PersonalUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude));
-        } else {
-            user = new BusinessUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude), dto.websiteLink, dto.email, dto.phoneNumber);
-        }
-
-        return user;
+        return switch (dto.type) {
+            case PERSONAL -> new PersonalUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude));
+            case BUSINESS -> new BusinessUser(dto.uid, dto.username, dto.name, dto.bio, new Address(dto.address.country, dto.address.city, dto.address.street), new Location(dto.location.latitude, dto.location.longitude), dto.websiteLink, dto.email, dto.phoneNumber);
+            default ->
+                throw new IllegalStateException("Unknown UserType: " + dto.type);
+        };
     }
+    // endregion
 
+    // region === NESTED CLASSES ===
     public static class Address {
 
         private String country;
@@ -307,5 +333,6 @@ public abstract class User implements PublicationAuthor {
             this.longitude = longitude;
         }
     }
+    // endregion
 }
 
