@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class Quote extends Post {
     // region === FIELDS ===
-    private final PublicationBase referencedPublication;
+    private PublicationBase referencedPublication;
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -23,7 +23,7 @@ public class Quote extends Post {
         if (referencedPublication == null) {
             throw new IllegalArgumentException("Referenced publication cannot be null");
         }
-        this.referencedPublication = referencedPublication;
+        setReferencedPublication(referencedPublication);
     }
 
     public Quote(UUID uid,
@@ -36,16 +36,41 @@ public class Quote extends Post {
                  boolean wasEdited,
                  boolean wasPromoted) {
         super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, wasPromoted);
-        if (referencedPublication == null) {
-            throw new IllegalArgumentException("Referenced publication cannot be null");
-        }
-        this.referencedPublication = referencedPublication;
+
+        setReferencedPublication(referencedPublication);
     }
     // endregion
 
     // region === GETTERS & SETTERS ===
     public PublicationBase getReferencedPublication() {
         return referencedPublication;
+    }
+
+    public void setReferencedPublication(PublicationBase newReferencedPublication) {
+        if (newReferencedPublication == this.referencedPublication) {
+            return;
+        }
+
+        detachFromReferencedPublication();
+
+        this.referencedPublication = newReferencedPublication;
+
+        if (newReferencedPublication != null) {
+            newReferencedPublication.addQuote(this);
+        }
+    }
+    // endregion
+
+    // region === MUTATORS ===
+    public void detachFromReferencedPublication() {
+        if (referencedPublication == null) {
+            return;
+        }
+
+        PublicationBase referencedPublication = this.referencedPublication;
+        this.referencedPublication = null;
+
+        referencedPublication.internalRemoveQuote(this);
     }
     // endregion
 }
