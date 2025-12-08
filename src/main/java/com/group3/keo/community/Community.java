@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.group3.keo.enums.CommunityTopic;
+import com.group3.keo.enums.RoleType;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.media.Picture;
 import com.group3.keo.publications.base.PublicationAuthor;
+import com.group3.keo.users.PersonalUser;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -24,6 +26,7 @@ public class Community implements PublicationAuthor {
     // endregion
 
     // region === FIELDS ===
+    private final Map<String, Role> members = new HashMap<>();
     private final UUID uid;
     private String name;
     private Picture avatar;
@@ -80,6 +83,60 @@ public class Community implements PublicationAuthor {
 
     public void setAvatar(Picture avatar) {
         this.avatar = avatar;
+    }
+
+    public Map<String, Role> getMembers() {
+        return Collections.unmodifiableMap(members);
+    }
+
+    // endregion
+
+    // region === MUTATORS ===
+    public Role addMember(PersonalUser user, RoleType type) {
+        if (members.containsKey(user.getUsername())) {
+            throw new IllegalStateException("User is already in this community");
+        }
+
+        Role role = new Role(type, this, user);
+
+        internalAddRole(role);
+        user.internalAddRole(role);
+
+        return role;
+    }
+
+    public void removeMember(PersonalUser user) {
+        Role role = members.get(user.getUsername());
+        if (role == null) {
+            return;
+        }
+
+        role.delete();
+    }
+
+    public void delete() {
+        for (Role role : new HashSet<>(members.values())) {
+            role.delete();
+        }
+        extent.remove(this.uid);
+    }
+    // endregion
+
+    // region === HELPERS ===
+    public void internalAddRole(Role role) {
+        members.put(role.getUser().getUsername(), role);
+    }
+
+    public void internalRemoveRole(Role role) {
+        members.remove(role.getUser().getUsername());
+    }
+
+    public void updateUsername(PersonalUser user, String oldUsername) {
+        Role role = members.remove(oldUsername);
+
+        if (role != null) {
+            members.put(user.getUsername(), role);
+        }
     }
     // endregion
     
