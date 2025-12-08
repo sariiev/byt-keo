@@ -44,6 +44,7 @@ public abstract class PublicationBase {
 
     private final Set<User> likedBy = new HashSet<>();
     private final List<Comment> comments = new ArrayList<>();
+    private final List<Quote> quotes = new ArrayList<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -168,6 +169,10 @@ public abstract class PublicationBase {
     public List<Comment> getComments() {
         return Collections.unmodifiableList(comments);
     }
+
+    public List<Quote> getQuotes() {
+        return Collections.unmodifiableList(quotes);
+    }
     // endregion
 
     // region === MUTATORS ===
@@ -210,7 +215,52 @@ public abstract class PublicationBase {
         if (comment.getCommentedPublication() != this) {
             throw new IllegalArgumentException("Comment does not belong to this publication");
         }
-        comments.add(comment);
+        if (!comments.contains(comment)) {
+            comments.add(comment);
+        }
+    }
+
+    public void removeComment(Comment comment) {
+        if (comment == null) {
+            return;
+        }
+        if (!comments.contains(comment)) {
+            return;
+        }
+
+        comment.detachFromPublication();
+    }
+
+    public void internalRemoveComment(Comment comment) {
+        comments.remove(comment);
+    }
+
+    public void addQuote(Quote quote) {
+        if (quote == null) {
+            throw new IllegalArgumentException("Quote cannot be null");
+        }
+        if (quote.getReferencedPublication() != this) {
+            throw new IllegalArgumentException("Quote does not quote this publication");
+        }
+        if (!quotes.contains(quote)) {
+            quotes.add(quote);
+        }
+    }
+
+    public void internalRemoveQuote(Quote quote) {
+        quotes.remove(quote);
+    }
+
+    public void delete() {
+        for (Comment comment : new ArrayList<>(comments)) {
+            comment.delete();
+        }
+
+        for (Quote quote : new ArrayList<>(quotes)) {
+            quote.detachFromReferencedPublication();
+        }
+
+        extent.remove(this.uid);
     }
     // endregion
 
@@ -345,7 +395,7 @@ public abstract class PublicationBase {
                 } else {
                     dto.isPrivate = false;
                 }
-                dto.referencedPublication = q.getReferencedPublication().getUid();
+                dto.referencedPublication = q.getReferencedPublication() != null ? q.getReferencedPublication().getUid() : null;
 
                 yield dto;
             }
@@ -430,10 +480,6 @@ public abstract class PublicationBase {
             }
             case PublicationType.QUOTE -> {
                 PublicationBase referencedPublication = PublicationBase.getExtent().get(dto.referencedPublication);
-                if (referencedPublication == null) {
-                    throw new IllegalStateException("publication not found for UID: " + dto.referencedPublication);
-                }
-
                 if (dto.isPrivate) {
                     publication = new PrivateQuote(dto.uid, (User) author, dto.caption, attachments, referencedPublication, allowedUsers, LocalDateTime.parse(dto.publicationDateTime) , dto.views, dto.wasEdited, dto.wasPromoted);
                 } else {
