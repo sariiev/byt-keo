@@ -66,7 +66,7 @@ public abstract class User implements PublicationAuthor {
         return username;
     }
 
-    private void setUsername(String username) {
+    public void setUsername(String username) {
         Utils.validateNonEmpty(username, "username");
         Utils.validateMaxLength(username, "username", MAX_USERNAME_LENGTH);
         this.username = username.trim();
@@ -160,6 +160,12 @@ public abstract class User implements PublicationAuthor {
             return;
         }
         followers.remove(follower);
+    }
+
+    public void delete() {
+        // this is a simplified delete method (it doesn't remove publications, followers, etc.)
+        // it was created to satisfy association class demonstration
+        extent.remove(this.uid);
     }
     // endregion
 
