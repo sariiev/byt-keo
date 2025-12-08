@@ -24,7 +24,9 @@ public class Role {
     // endregion
 
     // region === CONSTRUCTORS ===
-    public Role(RoleType roleType, Community community, PersonalUser user) {
+    protected Role(RoleType roleType, Community community, PersonalUser user) {
+        // this constructor is not used directly
+        // roles are only instantiated by PersonalUser.joinCommunity() or Community.addMember()
         for (Role r : extent) {
             if (r.getCommunity().equals(community) && r.getUser().equals(user)) {
                 throw new IllegalStateException("Role for this (Community, User) pair already exists");
@@ -32,8 +34,16 @@ public class Role {
         }
 
         setRoleType(roleType);
-        setCommunity(community);
-        setUser(user);
+
+        if (community == null) {
+            throw new IllegalArgumentException("community cannot be null");
+        }
+        this.community = community;
+
+        if (user == null) {
+            throw new IllegalArgumentException("user cannot be null");
+        }
+        this.user = user;
 
         extent.add(this);
     }
@@ -51,26 +61,22 @@ public class Role {
         this.roleType = roleType;
     }
 
+    // region === MUTATORS ===
+    public void delete() {
+        user.internalRemoveRole(this);
+
+        community.internalRemoveRole(this);
+
+        extent.remove(this);
+    }
+    // endregion
+
     public Community getCommunity() {
         return community;
     }
 
-    public void setCommunity(Community community) {
-        if (community == null) {
-            throw new IllegalArgumentException("community cannot be null");
-        }
-        this.community = community;
-    }
-
     public PersonalUser getUser() {
         return user;
-    }
-
-    public void setUser(PersonalUser user) {
-        if (user == null) {
-            throw new IllegalArgumentException("user cannot be null");
-        }
-        this.user = user;
     }
     // endregion
 
