@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class Comment extends PublicationBase {
     // region === FIELDS ===
-    private final PublicationBase commentedPublication;
+    private PublicationBase commentedPublication;
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -43,6 +43,24 @@ public class Comment extends PublicationBase {
         this.commentedPublication = commentedPublication;
         commentedPublication.addComment(this);
     }
+    // endregion
+
+    // region === MUTATORS ===
+    public void detachFromPublication() {
+        if (commentedPublication == null) return;
+
+        PublicationBase commentedPublication = this.commentedPublication;
+        this.commentedPublication = null;
+
+        commentedPublication.internalRemoveComment(this);
+    }
+
+    @Override
+    public void delete() {
+        detachFromPublication();
+        super.delete();
+    }
+
     // endregion
 
     // region === GETTERS & SETTERS ===
