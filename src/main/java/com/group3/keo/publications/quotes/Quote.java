@@ -72,5 +72,12 @@ public class Quote extends Post {
 
         referencedPublication.internalRemoveQuote(this);
     }
+
+    @Override
+    public void delete() {
+        detachFromReferencedPublication();
+        super.delete();
+    }
+
     // endregion
 }
