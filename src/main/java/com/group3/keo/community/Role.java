@@ -24,7 +24,7 @@ public class Role {
     // endregion
 
     // region === CONSTRUCTORS ===
-    protected Role(RoleType roleType, Community community, PersonalUser user) {
+    public Role(RoleType roleType, Community community, PersonalUser user) {
         // this constructor is not used directly
         // roles are only instantiated by PersonalUser.joinCommunity() or Community.addMember()
         for (Role r : extent) {
