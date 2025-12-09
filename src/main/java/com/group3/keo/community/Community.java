@@ -34,11 +34,12 @@ public class Community implements PublicationAuthor {
     // endregion
 
     // region === CONSTRUCTORS ===
-    public Community(String name, CommunityTopic topic, Picture avatar) {
+    public Community(String name, CommunityTopic topic, Picture avatar, PersonalUser creator) {
         uid = UUID.randomUUID();
         setName(name);
         setTopic(topic);
         setAvatar(avatar);
+        addMember(creator, RoleType.HEAD);
         extent.put(uid, this);
     }
 
@@ -93,8 +94,25 @@ public class Community implements PublicationAuthor {
 
     // region === MUTATORS ===
     public Role addMember(PersonalUser user, RoleType type) {
+        if (user == null) {
+            throw new IllegalArgumentException("user cannot be null");
+        }
+
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null");
+        }
+
         if (members.containsKey(user.getUsername())) {
             throw new IllegalStateException("User is already in this community");
+        }
+
+        if (type == RoleType.HEAD) {
+            for (Role role : members.values()) {
+                if (role.getRoleType() == RoleType.HEAD) {
+                    role.setRoleType(RoleType.MEMBER);
+                    break;
+                }
+            }
         }
 
         Role role = new Role(type, this, user);
@@ -136,6 +154,23 @@ public class Community implements PublicationAuthor {
 
         if (role != null) {
             members.put(user.getUsername(), role);
+        }
+    }
+
+    public void reassignHead(PersonalUser removedUser) {
+        Role removedRole = members.get(removedUser.getUsername());
+        if (removedRole == null) {
+            return;
+        }
+        if (removedRole.getRoleType() != RoleType.HEAD) {
+            return;
+        }
+
+        for (Role role : members.values()) {
+            if (!role.getUser().equals(removedUser)) {
+                role.setRoleType(RoleType.HEAD);
+                return;
+            }
         }
     }
     // endregion
