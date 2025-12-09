@@ -48,6 +48,10 @@ public class PersonalUser extends User {
         }
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
     // endregion
 
     // region === HELPERS ===
