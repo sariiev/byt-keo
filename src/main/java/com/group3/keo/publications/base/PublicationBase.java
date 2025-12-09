@@ -228,7 +228,7 @@ public abstract class PublicationBase {
             return;
         }
 
-        comment.detachFromPublication();
+        comment.delete();
     }
 
     public void internalRemoveComment(Comment comment) {
