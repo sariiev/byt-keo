@@ -75,6 +75,12 @@ public class PersonalUser extends User {
 
     public void delete() {
         for (Role role : new HashSet<>(roles)) {
+            if (role.getRoleType() == RoleType.HEAD) {
+                role.getCommunity().reassignHead(this);
+            }
+        }
+
+        for (Role role : new HashSet<>(roles)) {
             role.delete();
         }
         super.delete();
