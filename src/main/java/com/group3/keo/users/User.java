@@ -20,6 +20,7 @@ public abstract class User implements PublicationAuthor {
 
     // region === EXTENT ===
     private static final Map<UUID, User> extent = new HashMap<>();
+    private final Set<User> following = new HashSet<>();
     // endregion
 
     // region === FIELDS ===
@@ -126,6 +127,14 @@ public abstract class User implements PublicationAuthor {
         return followers.size();
     }
 
+    public Set<User> getFollowing() {
+        return Collections.unmodifiableSet(following);
+    }
+
+    public int getFollowingCount() {
+        return following.size();
+    }
+
     public static Map<UUID, User> getExtent() {
         return Collections.unmodifiableMap(extent);
     }
@@ -152,19 +161,114 @@ public abstract class User implements PublicationAuthor {
         if (follower == this) {
             throw new IllegalArgumentException("user cannot follow themselves");
         }
+
+        if (followers.contains(follower)) {
+            return;
+        }
+
         followers.add(follower);
+
+        follower.addFollowingInternal(this);
+    }
+
+    private void addFollowingInternal(User userToFollow) {
+        if (userToFollow != null && userToFollow != this) {
+            following.add(userToFollow);
+        }
     }
 
     public void removeFollower(User follower) {
         if (follower == null) {
             return;
         }
+
+        if (!followers.contains(follower)) {
+            return;
+        }
+
         followers.remove(follower);
+
+        follower.removeFollowingInternal(this);
+    }
+
+    private void removeFollowingInternal(User userToUnfollow) {
+        if (userToUnfollow != null) {
+            following.remove(userToUnfollow);
+        }
+    }
+
+    public void follow(User userToFollow) {
+        if (userToFollow == null) {
+            throw new IllegalArgumentException("userToFollow cannot be null");
+        }
+        if (userToFollow == this) {
+            throw new IllegalArgumentException("user cannot follow themselves");
+        }
+
+        if (following.contains(userToFollow)) {
+            return;
+        }
+
+        following.add(userToFollow);
+
+        userToFollow.addFollowerInternal(this);
+    }
+
+    private void addFollowerInternal(User follower) {
+        if (follower != null && follower != this) {
+            followers.add(follower);
+        }
+    }
+
+    public void unfollow(User userToUnfollow) {
+        if (userToUnfollow == null) {
+            return;
+        }
+
+        if (!following.contains(userToUnfollow)) {
+            return;
+        }
+
+        following.remove(userToUnfollow);
+
+        userToUnfollow.removeFollowerInternal(this);
+    }
+
+    private void removeFollowerInternal(User follower) {
+        if (follower != null) {
+            followers.remove(follower);
+        }
+    }
+
+    public void manageUserFollowStatus(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("user cannot be null");
+        }
+        if (user == this) {
+            throw new IllegalArgumentException("user cannot follow themselves");
+        }
+
+        if (following.contains(user)) {
+            unfollow(user);
+        } else {
+            follow(user);
+        }
     }
 
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
         // it was created to satisfy association class demonstration
+        Set<User> followingCopy = new HashSet<>(following);
+        Set<User> followersCopy = new HashSet<>(followers);
+
+        for (User user : followingCopy) {
+            unfollow(user);
+        }
+
+        for (User user : followersCopy) {
+            removeFollower(user);
+        }
+
         extent.remove(this.uid);
     }
     // endregion
@@ -248,6 +352,11 @@ public abstract class User implements PublicationAuthor {
         dto.followers = new ArrayList<>();
         for (User follower : followers) {
             dto.followers.add(follower.uid);
+        }
+
+        dto.following = new ArrayList<>();
+        for (User followedUser : following) {
+            dto.following.add(followedUser.uid);
         }
 
         return dto;

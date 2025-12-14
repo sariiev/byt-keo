@@ -21,6 +21,7 @@ public class UserDTO {
     public String phoneNumber;
 
     public List<UUID> followers;
+    public List<UUID> following;
 
     public static class AddressDTO {
         public String country;
