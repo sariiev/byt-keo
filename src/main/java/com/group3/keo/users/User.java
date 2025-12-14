@@ -37,6 +37,9 @@ public abstract class User implements PublicationAuthor {
     private final Set<User> following = new HashSet<>();
 
     private final Set<PublicationBase> publications = new HashSet<>();
+
+    private final Set<User> sentMessagesTo = new HashSet<>();
+    private final Set<User> receivedMessagesFrom = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -144,6 +147,22 @@ public abstract class User implements PublicationAuthor {
 
     public int getPublicationsCount() {
         return publications.size();
+    }
+
+    public Set<User> getSentMessagesTo() {
+        return Collections.unmodifiableSet(sentMessagesTo);
+    }
+
+    public int getSentMessagesToCount() {
+        return sentMessagesTo.size();
+    }
+
+    public Set<User> getReceivedMessagesFrom() {
+        return Collections.unmodifiableSet(receivedMessagesFrom);
+    }
+
+    public int getReceivedMessagesFromCount() {
+        return receivedMessagesFrom.size();
     }
 
     public static Map<UUID, User> getExtent() {
@@ -288,11 +307,60 @@ public abstract class User implements PublicationAuthor {
         return publication != null && publications.contains(publication);
     }
 
+    public void addMessageRecipient(User recipient) {
+        if (recipient == null) {
+            throw new IllegalArgumentException("Message recipient cannot be null");
+        }
+        if (recipient == this) {
+            throw new IllegalArgumentException("User cannot send messages to themselves");
+        }
+
+        sentMessagesTo.add(recipient);
+
+        recipient.addMessageSenderInternal(this);
+    }
+
+    private void addMessageSenderInternal(User sender) {
+        if (sender != null && sender != this && !receivedMessagesFrom.contains(sender)) {
+            receivedMessagesFrom.add(sender);
+        }
+    }
+
+    public void removeMessageRecipient(User recipient) {
+        if (recipient == null) {
+            return;
+        }
+
+        if (!sentMessagesTo.contains(recipient)) {
+            return;
+        }
+
+        sentMessagesTo.remove(recipient);
+
+        recipient.removeMessageSenderInternal(this);
+    }
+
+    private void removeMessageSenderInternal(User sender) {
+        if (sender != null) {
+            receivedMessagesFrom.remove(sender);
+        }
+    }
+
+    public boolean hasSentMessagesTo(User user) {
+        return user != null && sentMessagesTo.contains(user);
+    }
+
+    public boolean hasReceivedMessagesFrom(User user) {
+        return user != null && receivedMessagesFrom.contains(user);
+    }
+
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
         // it was created to satisfy association class demonstration
         Set<User> followingCopy = new HashSet<>(following);
         Set<User> followersCopy = new HashSet<>(followers);
+        Set<User> sentMessagesToCopy = new HashSet<>(sentMessagesTo);
+        Set<User> receivedMessagesFromCopy = new HashSet<>(receivedMessagesFrom);
 
         for (User user : followingCopy) {
             unfollow(user);
@@ -301,6 +369,15 @@ public abstract class User implements PublicationAuthor {
         for (User user : followersCopy) {
             removeFollower(user);
         }
+
+        for (User user : sentMessagesToCopy) {
+            removeMessageRecipient(user);
+        }
+
+        for (User user : receivedMessagesFromCopy) {
+            user.removeMessageRecipient(this);
+        }
+
 
         publications.clear();
 
@@ -347,6 +424,15 @@ public abstract class User implements PublicationAuthor {
                             User followedUser = extent.get(followingUid);
                             if (followedUser != null) {
                                 user.follow(followedUser);
+                            }
+                        }
+                    }
+
+                    if (dto.sentMessagesTo != null) {
+                        for (UUID recipientUid : dto.sentMessagesTo) {
+                            User recipient = extent.get(recipientUid);
+                            if (recipient != null) {
+                                user.addMessageRecipient(recipient);
                             }
                         }
                     }
@@ -397,6 +483,16 @@ public abstract class User implements PublicationAuthor {
         dto.publications = new ArrayList<>();
         for (PublicationBase publication : publications) {
             dto.publications.add(publication.getUid());
+        }
+
+        dto.sentMessagesTo = new ArrayList<>();
+        for (User recipient : sentMessagesTo) {
+            dto.sentMessagesTo.add(recipient.uid);
+        }
+
+        dto.receivedMessagesFrom = new ArrayList<>();
+        for (User sender : receivedMessagesFrom) {
+            dto.receivedMessagesFrom.add(sender.uid);
         }
 
         return dto;
