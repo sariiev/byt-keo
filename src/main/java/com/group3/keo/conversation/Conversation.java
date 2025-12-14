@@ -41,6 +41,9 @@ public class Conversation {
         this.participants.add(user1);
         this.participants.add(user2);
 
+        user1.addConversationInternal(this);
+        user2.addConversationInternal(this);
+
         extent.put(uid, this);
     }
 
@@ -76,6 +79,10 @@ public class Conversation {
         this.uid = uid;
         this.participants.addAll(new HashSet<>(participants));
 
+        for (User user : participants) {
+            user.addConversationInternal(this);
+        }
+
         extent.put(uid, this);
     }
     // endregion
@@ -104,6 +111,12 @@ public class Conversation {
         }
         if (!messages.contains(message)) {
             messages.add(message);
+        }
+    }
+
+    public void removeParticipantInternal(User user) {
+        if (user != null) {
+            participants.remove(user);
         }
     }
     // endregion

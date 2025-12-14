@@ -30,6 +30,8 @@ public class UserDTO {
 
     public List<UUID> likedPublications;
 
+    public List<UUID> conversations;
+
     public static class AddressDTO {
         public String country;
         public String city;

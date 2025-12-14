@@ -2,6 +2,7 @@ package com.group3.keo.users;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.group3.keo.conversation.Conversation;
 import com.group3.keo.enums.UserType;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
@@ -42,6 +43,8 @@ public abstract class User implements PublicationAuthor {
     private final Set<User> receivedMessagesFrom = new HashSet<>();
 
     private final Set<PublicationBase> likedPublications = new HashSet<>();
+
+    private final Set<Conversation> conversations = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -149,6 +152,10 @@ public abstract class User implements PublicationAuthor {
 
     public Set<PublicationBase> getLikedPublications() {
         return Collections.unmodifiableSet(likedPublications);
+    }
+
+    public Set<Conversation> getConversations() {
+        return Collections.unmodifiableSet(conversations);
     }
 
     public static Map<UUID, User> getExtent() {
@@ -354,7 +361,17 @@ public abstract class User implements PublicationAuthor {
         publication.removeLikeInternal(this);
     }
 
+    public void addConversationInternal(Conversation conversation) {
+        if (conversation != null && !conversations.contains(conversation)) {
+            conversations.add(conversation);
+        }
+    }
 
+    public void removeConversationInternal(Conversation conversation) {
+        if (conversation != null) {
+            conversations.remove(conversation);
+        }
+    }
 
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
@@ -364,6 +381,7 @@ public abstract class User implements PublicationAuthor {
         Set<User> sentMessagesToCopy = new HashSet<>(sentMessagesTo);
         Set<User> receivedMessagesFromCopy = new HashSet<>(receivedMessagesFrom);
         Set<PublicationBase> likedPublicationsCopy = new HashSet<>(likedPublications);
+        Set<Conversation> conversationsCopy = new HashSet<>(conversations);
 
         for (User user : followingCopy) {
             unfollow(user);
@@ -384,6 +402,11 @@ public abstract class User implements PublicationAuthor {
         for (PublicationBase publication : likedPublicationsCopy) {
             unlikePublication(publication);
         }
+
+        for (Conversation conversation : conversationsCopy) {
+            conversation.removeParticipantInternal(this);
+        }
+        conversations.clear();
 
         publications.clear();
 
@@ -513,6 +536,11 @@ public abstract class User implements PublicationAuthor {
         dto.likedPublications = new ArrayList<>();
         for (PublicationBase publication : likedPublications) {
             dto.likedPublications.add(publication.getUid());
+        }
+
+        dto.conversations = new ArrayList<>();
+        for (Conversation conversation : conversations) {
+            dto.conversations.add(conversation.getUid());
         }
 
         return dto;
