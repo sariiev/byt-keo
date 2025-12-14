@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.group3.keo.enums.PromotionStatus;
+import com.group3.keo.publications.posts.Post;
+import com.group3.keo.users.BusinessUser;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -26,16 +28,31 @@ public class PromotionOrder {
 
     private final LocalDateTime creationDateTime;
     private PromotionStatus status = PromotionStatus.IN_PROGRESS;
+
+    private final BusinessUser businessUser;
+    private final Post post;
     // endregion
 
     // region === CONSTRUCTORS ===
-    public PromotionOrder(PromotionPlan plan) {
+    public PromotionOrder(PromotionPlan plan, BusinessUser businessUser, Post post) {
         if (plan == null) {
             throw new IllegalArgumentException("plan cannot be null");
         }
 
+        if (businessUser == null) {
+            throw new IllegalArgumentException("businessUser cannot be null");
+        }
+
+        if (post == null) {
+            throw new IllegalArgumentException("post cannot be null");
+        }
+
         if (!plan.isActive()) {
             throw new IllegalStateException("Cannot create order: plan is inactive");
+        }
+
+        if (post.getAuthor() != businessUser) {
+            throw new IllegalArgumentException("Only the author (BusinessUser) can promote their own post");
         }
 
         if (plan.isCustom()) {
@@ -51,10 +68,16 @@ public class PromotionOrder {
         this.views = plan.getViews();
         this.pricePerView = plan.getPricePerView();
         this.creationDateTime = LocalDateTime.now();
+        this.businessUser = businessUser;
+        this.post = post;
+
         extent.put(uid, this);
+
+        businessUser.addPromotionOrderInternal(this);
+        post.addPromotionOrderInternal(this);
     }
 
-    private PromotionOrder(UUID uid, PromotionPlan plan, boolean isCustomOrder, int views, double pricePerView, LocalDateTime creationDateTime, PromotionStatus status) {
+    private PromotionOrder(UUID uid, PromotionPlan plan, boolean isCustomOrder, int views, double pricePerView, LocalDateTime creationDateTime, PromotionStatus status, BusinessUser businessUser, Post post) {
         if (isCustomOrder) {
             this.plan = null;
             this.isCustomOrder = true;
@@ -69,7 +92,17 @@ public class PromotionOrder {
         this.pricePerView = pricePerView;
         this.creationDateTime = creationDateTime;
         this.status = status;
+        this.businessUser = businessUser;
+        this.post = post;
+
         extent.put(uid, this);
+
+        if (businessUser != null) {
+            businessUser.addPromotionOrderInternal(this);
+        }
+        if (post != null) {
+            post.addPromotionOrderInternal(this);
+        }
     }
     // endregion
 
@@ -116,7 +149,28 @@ public class PromotionOrder {
     public double getTotalPrice() {
         return views * pricePerView;
     }
+
+    public BusinessUser getBusinessUser() {
+        return businessUser;
+    }
+
+    public Post getPost() {
+        return post;
+    }
     // endregion
+
+    // region === MUTATORS ===
+    public void delete() {
+        if (businessUser != null) {
+            businessUser.removePromotionOrderInternal(this);
+        }
+        if (post != null) {
+            post.removePromotionOrderInternal(this);
+        }
+
+        extent.remove(this.uid);
+    }
+    //endregion
 
     // region === EQUALS & HASHCODE ===
     @Override
@@ -188,6 +242,14 @@ public class PromotionOrder {
         dto.pricePerView = pricePerView;
         dto.creationDateTime = creationDateTime.toString();
         dto.status = status;
+
+        if (businessUser != null) {
+            dto.businessUser = businessUser;
+        }
+        if (post != null) {
+            dto.post = post;
+        }
+
         return dto;
     }
 
@@ -196,7 +258,18 @@ public class PromotionOrder {
         if (dto.plan != null) {
             promotionPlan = PromotionPlan.getExtent().get(dto.plan);
         }
-        return new PromotionOrder(dto.uid, promotionPlan, dto.isCustomOrder, dto.views, dto.pricePerView, LocalDateTime.parse(dto.creationDateTime), dto.status);
+
+        BusinessUser businessUser = null;
+        if (dto.businessUser != null) {
+            businessUser = (BusinessUser) com.group3.keo.users.User.getExtent().get(dto.businessUser);
+        }
+
+        Post post = null;
+        if (dto.post != null) {
+            post = (Post) com.group3.keo.publications.base.PublicationBase.getExtent().get(dto.post);
+        }
+
+        return new PromotionOrder(dto.uid, promotionPlan, dto.isCustomOrder, dto.views, dto.pricePerView, LocalDateTime.parse(dto.creationDateTime), dto.status, businessUser, post);
     }
     // endregion
 }
