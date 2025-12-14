@@ -61,6 +61,10 @@ public abstract class PublicationBase {
         setCaption(caption);
 
         extent.put(uid, this);
+
+        if (author instanceof User userAuthor) {
+            userAuthor.addPublication(this);
+        }
     }
 
     protected PublicationBase(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, LocalDateTime publicationDateTime, int views, boolean wasEdited) {
@@ -78,6 +82,10 @@ public abstract class PublicationBase {
         setCaption(caption);
 
         extent.put(uid, this);
+
+        if (author instanceof User userAuthor) {
+            userAuthor.addPublication(this);
+        }
     }
     // endregion
 
@@ -258,6 +266,10 @@ public abstract class PublicationBase {
 
         for (Quote quote : new ArrayList<>(quotes)) {
             quote.detachFromReferencedPublication();
+        }
+
+        if (author instanceof User userAuthor) {
+            userAuthor.removePublication(this);
         }
 
         extent.remove(this.uid);

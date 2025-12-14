@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.group3.keo.enums.UserType;
 import com.group3.keo.publications.base.PublicationAuthor;
+import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -20,7 +21,6 @@ public abstract class User implements PublicationAuthor {
 
     // region === EXTENT ===
     private static final Map<UUID, User> extent = new HashMap<>();
-    private final Set<User> following = new HashSet<>();
     // endregion
 
     // region === FIELDS ===
@@ -34,6 +34,9 @@ public abstract class User implements PublicationAuthor {
     private Location location;
 
     private final Set<User> followers = new HashSet<>();
+    private final Set<User> following = new HashSet<>();
+
+    private final Set<PublicationBase> publications = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -133,6 +136,14 @@ public abstract class User implements PublicationAuthor {
 
     public int getFollowingCount() {
         return following.size();
+    }
+
+    public Set<PublicationBase> getPublications() {
+        return Collections.unmodifiableSet(publications);
+    }
+
+    public int getPublicationsCount() {
+        return publications.size();
     }
 
     public static Map<UUID, User> getExtent() {
@@ -255,6 +266,28 @@ public abstract class User implements PublicationAuthor {
         }
     }
 
+    public void addPublication(PublicationBase publication) {
+        if (publication == null) {
+            throw new IllegalArgumentException("publication cannot be null");
+        }
+
+        if (publication.getAuthor() != this) {
+            throw new IllegalArgumentException("this user is not the author of the publication");
+        }
+
+        publications.add(publication);
+    }
+
+    public void removePublication(PublicationBase publication) {
+        if (publication != null) {
+            publications.remove(publication);
+        }
+    }
+
+    public boolean hasPublication(PublicationBase publication) {
+        return publication != null && publications.contains(publication);
+    }
+
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
         // it was created to satisfy association class demonstration
@@ -268,6 +301,8 @@ public abstract class User implements PublicationAuthor {
         for (User user : followersCopy) {
             removeFollower(user);
         }
+
+        publications.clear();
 
         extent.remove(this.uid);
     }
@@ -307,11 +342,11 @@ public abstract class User implements PublicationAuthor {
 
                 for (UserDTO dto : loaded) {
                     User user = extent.get(dto.uid);
-                    if (dto.followers != null) {
-                        for (UUID followerUid : dto.followers) {
-                            User follower = extent.get(followerUid);
-                            if (follower != null) {
-                                user.addFollower(follower);
+                    if (dto.following != null) {
+                        for (UUID followingUid : dto.following) {
+                            User followedUser = extent.get(followingUid);
+                            if (followedUser != null) {
+                                user.follow(followedUser);
                             }
                         }
                     }
@@ -357,6 +392,11 @@ public abstract class User implements PublicationAuthor {
         dto.following = new ArrayList<>();
         for (User followedUser : following) {
             dto.following.add(followedUser.uid);
+        }
+
+        dto.publications = new ArrayList<>();
+        for (PublicationBase publication : publications) {
+            dto.publications.add(publication.getUid());
         }
 
         return dto;

@@ -23,6 +23,8 @@ public class UserDTO {
     public List<UUID> followers;
     public List<UUID> following;
 
+    public List<UUID> publications;
+
     public static class AddressDTO {
         public String country;
         public String city;
