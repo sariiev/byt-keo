@@ -28,6 +28,8 @@ public class UserDTO {
     public List<UUID> sentMessagesTo;
     public List<UUID> receivedMessagesFrom;
 
+    public List<UUID> likedPublications;
+
     public static class AddressDTO {
         public String country;
         public String city;

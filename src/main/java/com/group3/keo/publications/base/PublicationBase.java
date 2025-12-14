@@ -259,6 +259,18 @@ public abstract class PublicationBase {
         quotes.remove(quote);
     }
 
+    public void addLikeInternal(User user) {
+        if (user != null && !likedBy.contains(user)) {
+            likedBy.add(user);
+        }
+    }
+
+    public void removeLikeInternal(User user) {
+        if (user != null) {
+            likedBy.remove(user);
+        }
+    }
+
     public void delete() {
         for (Comment comment : new ArrayList<>(comments)) {
             comment.delete();

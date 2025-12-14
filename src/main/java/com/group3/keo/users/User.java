@@ -40,6 +40,8 @@ public abstract class User implements PublicationAuthor {
 
     private final Set<User> sentMessagesTo = new HashSet<>();
     private final Set<User> receivedMessagesFrom = new HashSet<>();
+
+    private final Set<PublicationBase> likedPublications = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -129,40 +131,24 @@ public abstract class User implements PublicationAuthor {
         return Collections.unmodifiableSet(followers);
     }
 
-    public int getFollowersCount() {
-        return followers.size();
-    }
-
     public Set<User> getFollowing() {
         return Collections.unmodifiableSet(following);
-    }
-
-    public int getFollowingCount() {
-        return following.size();
     }
 
     public Set<PublicationBase> getPublications() {
         return Collections.unmodifiableSet(publications);
     }
 
-    public int getPublicationsCount() {
-        return publications.size();
-    }
-
     public Set<User> getSentMessagesTo() {
         return Collections.unmodifiableSet(sentMessagesTo);
-    }
-
-    public int getSentMessagesToCount() {
-        return sentMessagesTo.size();
     }
 
     public Set<User> getReceivedMessagesFrom() {
         return Collections.unmodifiableSet(receivedMessagesFrom);
     }
 
-    public int getReceivedMessagesFromCount() {
-        return receivedMessagesFrom.size();
+    public Set<PublicationBase> getLikedPublications() {
+        return Collections.unmodifiableSet(likedPublications);
     }
 
     public static Map<UUID, User> getExtent() {
@@ -303,10 +289,6 @@ public abstract class User implements PublicationAuthor {
         }
     }
 
-    public boolean hasPublication(PublicationBase publication) {
-        return publication != null && publications.contains(publication);
-    }
-
     public void addMessageRecipient(User recipient) {
         if (recipient == null) {
             throw new IllegalArgumentException("Message recipient cannot be null");
@@ -346,13 +328,33 @@ public abstract class User implements PublicationAuthor {
         }
     }
 
-    public boolean hasSentMessagesTo(User user) {
-        return user != null && sentMessagesTo.contains(user);
+    public void likePublication(PublicationBase publication) {
+        if (publication == null) {
+            throw new IllegalArgumentException("Publication cannot be null");
+        }
+
+        if (!likedPublications.contains(publication)) {
+            likedPublications.add(publication);
+
+            publication.addLikeInternal(this);
+        }
     }
 
-    public boolean hasReceivedMessagesFrom(User user) {
-        return user != null && receivedMessagesFrom.contains(user);
+    public void unlikePublication(PublicationBase publication) {
+        if (publication == null) {
+            return;
+        }
+
+        if (!likedPublications.contains(publication)) {
+            return;
+        }
+
+        likedPublications.remove(publication);
+
+        publication.removeLikeInternal(this);
     }
+
+
 
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
@@ -361,6 +363,7 @@ public abstract class User implements PublicationAuthor {
         Set<User> followersCopy = new HashSet<>(followers);
         Set<User> sentMessagesToCopy = new HashSet<>(sentMessagesTo);
         Set<User> receivedMessagesFromCopy = new HashSet<>(receivedMessagesFrom);
+        Set<PublicationBase> likedPublicationsCopy = new HashSet<>(likedPublications);
 
         for (User user : followingCopy) {
             unfollow(user);
@@ -378,6 +381,9 @@ public abstract class User implements PublicationAuthor {
             user.removeMessageRecipient(this);
         }
 
+        for (PublicationBase publication : likedPublicationsCopy) {
+            unlikePublication(publication);
+        }
 
         publications.clear();
 
@@ -433,6 +439,15 @@ public abstract class User implements PublicationAuthor {
                             User recipient = extent.get(recipientUid);
                             if (recipient != null) {
                                 user.addMessageRecipient(recipient);
+                            }
+                        }
+                    }
+
+                    if (dto.likedPublications != null) {
+                        for (UUID publicationUid : dto.likedPublications) {
+                            PublicationBase publication = PublicationBase.getExtent().get(publicationUid);
+                            if (publication != null) {
+                                user.likePublication(publication);
                             }
                         }
                     }
@@ -493,6 +508,11 @@ public abstract class User implements PublicationAuthor {
         dto.receivedMessagesFrom = new ArrayList<>();
         for (User sender : receivedMessagesFrom) {
             dto.receivedMessagesFrom.add(sender.uid);
+        }
+
+        dto.likedPublications = new ArrayList<>();
+        for (PublicationBase publication : likedPublications) {
+            dto.likedPublications.add(publication.getUid());
         }
 
         return dto;
