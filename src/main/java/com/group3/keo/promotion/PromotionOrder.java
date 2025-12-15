@@ -174,7 +174,7 @@ public class PromotionOrder {
         if (plan != null) {
             plan.removeOrderInternal(this);
         }
-        
+
         if (businessUser != null) {
             businessUser.removePromotionOrderInternal(this);
         }
