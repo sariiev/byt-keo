@@ -44,7 +44,7 @@ public abstract class PublicationBase {
 
     private final Set<User> likedBy = new HashSet<>();
     private final List<Comment> comments = new ArrayList<>();
-    private final List<Quote> quotes = new ArrayList<>();
+    private final Set<Quote> quotes = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -178,8 +178,8 @@ public abstract class PublicationBase {
         return Collections.unmodifiableList(comments);
     }
 
-    public List<Quote> getQuotes() {
-        return Collections.unmodifiableList(quotes);
+    public Set<Quote> getQuotes() {
+        return Collections.unmodifiableSet(quotes);
     }
     // endregion
 
@@ -265,13 +265,19 @@ public abstract class PublicationBase {
         if (quote.getReferencedPublication() != this) {
             throw new IllegalArgumentException("Quote does not quote this publication");
         }
-        if (!quotes.contains(quote)) {
+        quotes.add(quote);
+    }
+
+    public void addQuoteInternal(Quote quote) {
+        if (quote != null) {
             quotes.add(quote);
         }
     }
 
-    public void internalRemoveQuote(Quote quote) {
-        quotes.remove(quote);
+    public void removeQuoteInternal(Quote quote) {
+        if (quote != null) {
+            quotes.remove(quote);
+        }
     }
 
     public void addLikeInternal(User user) {
@@ -299,6 +305,11 @@ public abstract class PublicationBase {
         for (Quote quote : new ArrayList<>(quotes)) {
             quote.detachFromReferencedPublication();
         }
+
+        for (Quote quote : new HashSet<>(quotes)) {
+            quote.clearReferencedPublicationInternal();
+        }
+        quotes.clear();
 
         if (author instanceof User userAuthor) {
             userAuthor.removePublication(this);

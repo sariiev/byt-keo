@@ -20,10 +20,9 @@ public class Quote extends Post {
                  List<MediaAttachment> attachments,
                  PublicationBase referencedPublication) {
         super(author, caption, attachments);
-        if (referencedPublication == null) {
-            throw new IllegalArgumentException("Referenced publication cannot be null");
+        if (referencedPublication != null) {
+            quotePublication(referencedPublication);
         }
-        setReferencedPublication(referencedPublication);
     }
 
     public Quote(UUID uid,
@@ -37,7 +36,9 @@ public class Quote extends Post {
                  boolean wasPromoted) {
         super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, wasPromoted);
 
-        setReferencedPublication(referencedPublication);
+        if (referencedPublication != null) {
+            quotePublication(referencedPublication);
+        }
     }
     // endregion
 
@@ -47,21 +48,33 @@ public class Quote extends Post {
     }
 
     public void setReferencedPublication(PublicationBase newReferencedPublication) {
-        if (newReferencedPublication == this.referencedPublication) {
-            return;
-        }
+        quotePublication(newReferencedPublication);
+    }
 
-        detachFromReferencedPublication();
-
-        this.referencedPublication = newReferencedPublication;
-
-        if (newReferencedPublication != null) {
-            newReferencedPublication.addQuote(this);
-        }
+    void setReferencedPublicationInternal(PublicationBase publication) {
+        this.referencedPublication = publication;
     }
     // endregion
 
     // region === MUTATORS ===
+    public void quotePublication(PublicationBase publication) {
+        if (publication == this.referencedPublication) {
+            return;
+        }
+
+        if (publication == this) {
+            throw new IllegalArgumentException("A Quote cannot reference itself");
+        }
+
+        detachFromReferencedPublication();
+
+        this.referencedPublication = publication;
+
+        if (publication != null) {
+            publication.addQuoteInternal(this);
+        }
+    }
+
     public void detachFromReferencedPublication() {
         if (referencedPublication == null) {
             return;
@@ -70,7 +83,11 @@ public class Quote extends Post {
         PublicationBase referencedPublication = this.referencedPublication;
         this.referencedPublication = null;
 
-        referencedPublication.internalRemoveQuote(this);
+        referencedPublication.removeQuoteInternal(this);
+    }
+
+    public void clearReferencedPublicationInternal() {
+        this.referencedPublication = null;
     }
 
     @Override
