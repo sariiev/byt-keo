@@ -1,5 +1,6 @@
 package com.group3.keo.media;
 
+import com.group3.keo.community.Community;
 import com.group3.keo.users.User;
 
 import java.util.UUID;
@@ -9,6 +10,7 @@ public class Picture extends VisualAttachment {
     private boolean isAnimated;
 
     private User profilePictureOf;
+    private Community communityPictureOf;
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -70,6 +72,32 @@ public class Picture extends VisualAttachment {
     public void setProfilePictureOfInternal(User user) {
         this.profilePictureOf = user;
     }
+
+    public Community getCommunityPictureOf() {
+        return communityPictureOf;
+    }
+
+    public void setAsCommunityPictureOf(Community community) {
+        if (community == this.communityPictureOf) {
+            return;
+        }
+
+        if (this.communityPictureOf != null) {
+            Community oldCommunity = this.communityPictureOf;
+            this.communityPictureOf = null;
+            oldCommunity.clearCommunityPictureInternal();
+        }
+
+        this.communityPictureOf = community;
+
+        if (community != null) {
+            community.setCommunityPictureInternal(this);
+        }
+    }
+
+    public void setCommunityPictureOfInternal(Community community) {
+        this.communityPictureOf = community;
+    }
     // endregion
 
     // region == MUTATORS ==
@@ -81,6 +109,14 @@ public class Picture extends VisualAttachment {
         this.profilePictureOf = null;
     }
 
+    public void removeAsCommunityPicture() {
+        setAsCommunityPictureOf(null);
+    }
+
+    public void clearCommunityPictureOfInternal() {
+        this.communityPictureOf = null;
+    }
+
     @Override
     public void delete() {
         // Clear profile picture association before deleting
@@ -88,6 +124,12 @@ public class Picture extends VisualAttachment {
             profilePictureOf.clearProfilePictureInternal();
             profilePictureOf = null;
         }
+
+        if (communityPictureOf != null) {
+            communityPictureOf.clearCommunityPictureInternal();
+            communityPictureOf = null;
+        }
+
         super.delete();
     }
     //endregion

@@ -8,5 +8,5 @@ public class CommunityDTO {
     public UUID uid;
     public String name;
     public CommunityTopic topic;
-    public UUID avatarUid;
+    public UUID communityPictureUid;
 }

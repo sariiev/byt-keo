@@ -29,25 +29,26 @@ public class Community implements PublicationAuthor {
     private final Map<String, Role> members = new HashMap<>();
     private final UUID uid;
     private String name;
-    private Picture avatar;
+    private Picture communityPicture;
     private CommunityTopic topic;
     // endregion
 
     // region === CONSTRUCTORS ===
-    public Community(String name, CommunityTopic topic, Picture avatar, PersonalUser creator) {
+    public Community(String name, CommunityTopic topic, Picture communityPicture, PersonalUser creator) {
         uid = UUID.randomUUID();
         setName(name);
         setTopic(topic);
-        setAvatar(avatar);
+        if (communityPicture != null) {
+            setCommunityPicture(communityPicture);
+        }
         addMember(creator, RoleType.HEAD);
         extent.put(uid, this);
     }
 
-    private Community(UUID uid, String name, CommunityTopic topic, Picture avatar) {
+    private Community(UUID uid, String name, CommunityTopic topic) {
         this.uid = uid;
         setName(name);
         setTopic(topic);
-        setAvatar(avatar);
         extent.put(uid, this);
     }
     // endregion
@@ -78,18 +79,13 @@ public class Community implements PublicationAuthor {
         this.topic = topic;
     }
 
-    public Picture getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(Picture avatar) {
-        this.avatar = avatar;
-    }
-
     public Map<String, Role> getMembers() {
         return Collections.unmodifiableMap(members);
     }
 
+    public Picture getCommunityPicture() {
+        return communityPicture;
+    }
     // endregion
 
     // region === MUTATORS ===
@@ -132,7 +128,49 @@ public class Community implements PublicationAuthor {
         role.delete();
     }
 
+    public void setCommunityPicture(Picture picture) {
+        if (picture == this.communityPicture) {
+            return;
+        }
+
+        if (picture != null && picture.getCommunityPictureOf() != null && picture.getCommunityPictureOf() != this) {
+            throw new IllegalStateException(
+                    "Picture is already used as community picture by another community. " +
+                            "Remove it from the current community first."
+            );
+        }
+
+        if (this.communityPicture != null) {
+            Picture oldPicture = this.communityPicture;
+            this.communityPicture = null;
+            oldPicture.clearCommunityPictureOfInternal();
+        }
+
+        this.communityPicture = picture;
+
+        if (picture != null) {
+            picture.setCommunityPictureOfInternal(this);
+        }
+    }
+
+    public void removeCommunityPicture() {
+        setCommunityPicture(null);
+    }
+
+    public void setCommunityPictureInternal(Picture picture) {
+        this.communityPicture = picture;
+    }
+
+    public void clearCommunityPictureInternal() {
+        this.communityPicture = null;
+    }
+
     public void delete() {
+        if (communityPicture != null) {
+            communityPicture.clearCommunityPictureOfInternal();
+            communityPicture = null;
+        }
+
         for (Role role : new HashSet<>(members.values())) {
             role.delete();
         }
@@ -239,15 +277,22 @@ public class Community implements PublicationAuthor {
         dto.uid = uid;
         dto.name = name;
         dto.topic = topic;
-        dto.avatarUid = avatar != null ? avatar.getUid() : null;
+        dto.communityPictureUid = communityPicture != null ? communityPicture.getUid() : null;
 
         return dto;
     }
 
     private static Community fromDto(CommunityDTO dto) {
-        Picture avatar = dto.avatarUid != null ? (Picture) MediaAttachment.getExtent().get(dto.avatarUid) : null;
+        Community community = new Community(dto.uid, dto.name, dto.topic);
 
-        return new Community(dto.uid, dto.name, dto.topic, avatar);
+        if (dto.communityPictureUid != null) {
+            Picture picture = (Picture) MediaAttachment.getExtent().get(dto.communityPictureUid);
+            if (picture != null) {
+                community.setCommunityPicture(picture);
+            }
+        }
+
+        return community;
     }
     // endregion
 }
