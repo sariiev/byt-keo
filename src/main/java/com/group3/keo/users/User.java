@@ -4,6 +4,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.group3.keo.conversation.Conversation;
 import com.group3.keo.enums.UserType;
+import com.group3.keo.media.MediaAttachment;
+import com.group3.keo.media.Picture;
+import com.group3.keo.publications.base.PrivatePublication;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.utils.Utils;
@@ -45,6 +48,11 @@ public abstract class User implements PublicationAuthor {
     private final Set<PublicationBase> likedPublications = new HashSet<>();
 
     private final Set<Conversation> conversations = new HashSet<>();
+
+    private Picture profilePicture;
+
+    private final Set<PublicationBase> accessiblePrivatePublications = new HashSet<>();
+
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -156,6 +164,36 @@ public abstract class User implements PublicationAuthor {
 
     public Set<Conversation> getConversations() {
         return Collections.unmodifiableSet(conversations);
+    }
+
+    public Picture getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(Picture picture) {
+        if (picture == this.profilePicture) {
+            return;
+        }
+
+        if (this.profilePicture != null) {
+            Picture oldPicture = this.profilePicture;
+            this.profilePicture = null;
+            oldPicture.clearProfilePictureOfInternal();
+        }
+
+        this.profilePicture = picture;
+
+        if (picture != null) {
+            picture.setProfilePictureOfInternal(this);
+        }
+    }
+
+    public void setProfilePictureInternal(Picture picture) {
+        this.profilePicture = picture;
+    }
+
+    public Set<PublicationBase> getAccessiblePrivatePublications() {
+        return new HashSet<>(accessiblePrivatePublications);
     }
 
     public static Map<UUID, User> getExtent() {
@@ -373,6 +411,26 @@ public abstract class User implements PublicationAuthor {
         }
     }
 
+    public void removeProfilePicture() {
+        setProfilePicture(null);
+    }
+
+    public void clearProfilePictureInternal() {
+        this.profilePicture = null;
+    }
+
+    public void addAccessiblePrivatePublicationInternal(PublicationBase publication) {
+        if (publication != null && publication instanceof PrivatePublication) {
+            accessiblePrivatePublications.add(publication);
+        }
+    }
+
+    public void removeAccessiblePrivatePublicationInternal(PublicationBase publication) {
+        if (publication != null) {
+            accessiblePrivatePublications.remove(publication);
+        }
+    }
+
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
         // it was created to satisfy association class demonstration
@@ -407,6 +465,20 @@ public abstract class User implements PublicationAuthor {
             conversation.removeParticipantInternal(this);
         }
         conversations.clear();
+
+        if (profilePicture != null) {
+            profilePicture.clearProfilePictureOfInternal();
+            profilePicture = null;
+        }
+
+        for (PublicationBase publication : new HashSet<>(accessiblePrivatePublications)) {
+            if (publication instanceof PrivatePublication privatePublication) {
+                privatePublication.removeAllowedUserInternal(this);
+            }
+        }
+        accessiblePrivatePublications.clear();
+
+
 
         publications.clear();
 
@@ -472,6 +544,12 @@ public abstract class User implements PublicationAuthor {
                             if (publication != null) {
                                 user.likePublication(publication);
                             }
+                        }
+                    }
+                    if (dto.profilePicture != null) {
+                        MediaAttachment attachment = MediaAttachment.getExtent().get(dto.profilePicture);
+                        if (attachment instanceof Picture picture) {
+                            user.setProfilePicture(picture);
                         }
                     }
                 }
@@ -541,6 +619,15 @@ public abstract class User implements PublicationAuthor {
         dto.conversations = new ArrayList<>();
         for (Conversation conversation : conversations) {
             dto.conversations.add(conversation.getUid());
+        }
+
+        if (profilePicture != null) {
+            dto.profilePicture = profilePicture.getUid();
+        }
+
+        dto.accessiblePrivatePublications = new ArrayList<>();
+        for (PublicationBase publication : accessiblePrivatePublications) {
+            dto.accessiblePrivatePublications.add(publication.getUid());
         }
 
         return dto;

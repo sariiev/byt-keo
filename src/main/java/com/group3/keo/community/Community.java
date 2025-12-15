@@ -7,7 +7,9 @@ import com.group3.keo.enums.CommunityTopic;
 import com.group3.keo.enums.RoleType;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.media.Picture;
+import com.group3.keo.publications.base.PublicPublication;
 import com.group3.keo.publications.base.PublicationAuthor;
+import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.users.PersonalUser;
 import com.group3.keo.utils.Utils;
 
@@ -29,25 +31,28 @@ public class Community implements PublicationAuthor {
     private final Map<String, Role> members = new HashMap<>();
     private final UUID uid;
     private String name;
-    private Picture avatar;
+    private Picture communityPicture;
     private CommunityTopic topic;
+
+    private final Set<PublicationBase> publications = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
-    public Community(String name, CommunityTopic topic, Picture avatar, PersonalUser creator) {
+    public Community(String name, CommunityTopic topic, Picture communityPicture, PersonalUser creator) {
         uid = UUID.randomUUID();
         setName(name);
         setTopic(topic);
-        setAvatar(avatar);
+        if (communityPicture != null) {
+            setCommunityPicture(communityPicture);
+        }
         addMember(creator, RoleType.HEAD);
         extent.put(uid, this);
     }
 
-    private Community(UUID uid, String name, CommunityTopic topic, Picture avatar) {
+    private Community(UUID uid, String name, CommunityTopic topic) {
         this.uid = uid;
         setName(name);
         setTopic(topic);
-        setAvatar(avatar);
         extent.put(uid, this);
     }
     // endregion
@@ -78,17 +83,47 @@ public class Community implements PublicationAuthor {
         this.topic = topic;
     }
 
-    public Picture getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(Picture avatar) {
-        this.avatar = avatar;
-    }
-
     public Map<String, Role> getMembers() {
         return Collections.unmodifiableMap(members);
     }
+
+    public Picture getCommunityPicture() {
+        return communityPicture;
+    }
+
+    public void setCommunityPicture(Picture picture) {
+        if (picture == this.communityPicture) {
+            return;
+        }
+
+        if (picture != null && picture.getCommunityPictureOf() != null && picture.getCommunityPictureOf() != this) {
+            throw new IllegalStateException(
+                    "Picture is already used as community picture by another community. " +
+                            "Remove it from the current community first."
+            );
+        }
+
+        if (this.communityPicture != null) {
+            Picture oldPicture = this.communityPicture;
+            this.communityPicture = null;
+            oldPicture.clearCommunityPictureOfInternal();
+        }
+
+        this.communityPicture = picture;
+
+        if (picture != null) {
+            picture.setCommunityPictureOfInternal(this);
+        }
+    }
+
+    public void setCommunityPictureInternal(Picture picture) {
+        this.communityPicture = picture;
+    }
+
+    public Set<PublicationBase> getPublications() {
+        return new HashSet<>(publications);
+    }
+
 
     // endregion
 
@@ -132,7 +167,78 @@ public class Community implements PublicationAuthor {
         role.delete();
     }
 
+    public void removeCommunityPicture() {
+        setCommunityPicture(null);
+    }
+
+    public void clearCommunityPictureInternal() {
+        this.communityPicture = null;
+    }
+
+    public void addPublication(PublicationBase publication) {
+        if (publication == null) {
+            throw new IllegalArgumentException("publication cannot be null");
+        }
+
+        if (!(publication instanceof PublicPublication)) {
+            throw new IllegalArgumentException("publication must be a PublicPublication");
+        }
+
+        if (publications.contains(publication)) {
+            return;
+        }
+
+        PublicPublication publicPub = (PublicPublication) publication;
+
+        if (publicPub.getPublishedByCommunity() != null && publicPub.getPublishedByCommunity() != this) {
+            throw new IllegalStateException(
+                    "Publication is already published by another community. " +
+                            "Remove it from the current community first."
+            );
+        }
+
+        publications.add(publication);
+
+        publicPub.setPublishedByCommunityInternal(this);
+    }
+
+    public void removePublication(PublicationBase publication) {
+        if (publication == null || !publications.contains(publication)) {
+            return;
+        }
+
+        publications.remove(publication);
+
+        if (publication instanceof PublicPublication publicPub) {
+            publicPub.clearPublishedByCommunityInternal();
+        }
+    }
+
+    public void addPublicationInternal(PublicationBase publication) {
+        if (publication != null && publication instanceof PublicPublication) {
+            publications.add(publication);
+        }
+    }
+
+    public void removePublicationInternal(PublicationBase publication) {
+        if (publication != null) {
+            publications.remove(publication);
+        }
+    }
+
     public void delete() {
+        if (communityPicture != null) {
+            communityPicture.clearCommunityPictureOfInternal();
+            communityPicture = null;
+        }
+
+        for (PublicationBase publication : new HashSet<>(publications)) {
+            if (publication instanceof PublicPublication publicPub) {
+                publicPub.clearPublishedByCommunityInternal();
+            }
+        }
+        publications.clear();
+
         for (Role role : new HashSet<>(members.values())) {
             role.delete();
         }
@@ -239,15 +345,36 @@ public class Community implements PublicationAuthor {
         dto.uid = uid;
         dto.name = name;
         dto.topic = topic;
-        dto.avatarUid = avatar != null ? avatar.getUid() : null;
+        dto.communityPictureUid = communityPicture != null ? communityPicture.getUid() : null;
+
+        dto.publications = new ArrayList<>();
+        for (PublicationBase publication : publications) {
+            dto.publications.add(publication.getUid());
+        }
 
         return dto;
     }
 
     private static Community fromDto(CommunityDTO dto) {
-        Picture avatar = dto.avatarUid != null ? (Picture) MediaAttachment.getExtent().get(dto.avatarUid) : null;
+        Community community = new Community(dto.uid, dto.name, dto.topic);
 
-        return new Community(dto.uid, dto.name, dto.topic, avatar);
+        if (dto.communityPictureUid != null) {
+            Picture picture = (Picture) MediaAttachment.getExtent().get(dto.communityPictureUid);
+            if (picture != null) {
+                community.setCommunityPicture(picture);
+            }
+        }
+
+        if (dto.publications != null) {
+            for (UUID publicationUid : dto.publications) {
+                PublicationBase publication = PublicationBase.getExtent().get(publicationUid);
+                if (publication != null && publication instanceof PublicPublication) {
+                    community.addPublication(publication);
+                }
+            }
+        }
+
+        return community;
     }
     // endregion
 }

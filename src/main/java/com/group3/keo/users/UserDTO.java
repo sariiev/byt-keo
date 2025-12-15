@@ -32,6 +32,10 @@ public class UserDTO {
 
     public List<UUID> conversations;
 
+    public UUID profilePicture;
+
+    public List<UUID> accessiblePrivatePublications;
+
     public static class AddressDTO {
         public String country;
         public String city;

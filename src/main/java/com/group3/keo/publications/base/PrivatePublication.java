@@ -11,4 +11,6 @@ public interface PrivatePublication {
     void removeAllowedUser(User user);
 
     Set<User> getAllowedUsers();
+
+    void removeAllowedUserInternal(User user);
 }

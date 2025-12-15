@@ -16,19 +16,29 @@ public class PrivatePost extends Post implements PrivatePublication {
     public PrivatePost(User author, String caption, List<MediaAttachment> attachments, Set<User> allowedUsers) {
         super(author, caption, attachments);
 
-        if (allowedUsers != null) {
-            this.allowedUsers.addAll(allowedUsers);
-        }
         this.addAllowedUser(author);
+
+        if (allowedUsers != null) {
+            for (User user : allowedUsers) {
+                if (user != null && user != author) {
+                    this.addAllowedUser(user);
+                }
+            }
+        }
     }
 
     public PrivatePost(UUID uid, User author, String caption, List<MediaAttachment> attachments, Set<User> allowedUsers, LocalDateTime publicationDateTime, int views, boolean wasEdited, boolean wasPromoted) {
         super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, wasPromoted);
 
-        if (allowedUsers != null) {
-            this.allowedUsers.addAll(allowedUsers);
-        }
         this.addAllowedUser(author);
+
+        if (allowedUsers != null) {
+            for (User user : allowedUsers) {
+                if (user != null && user != author) {
+                    this.addAllowedUser(user);
+                }
+            }
+        }
     }
     // endregion
 
@@ -45,8 +55,12 @@ public class PrivatePost extends Post implements PrivatePublication {
         if (user == null) {
             throw new IllegalArgumentException("user cannot be null");
         }
+        if (allowedUsers.contains(user)) {
+            return;
+        }
 
         allowedUsers.add(user);
+        user.addAccessiblePrivatePublicationInternal(this);
     }
 
     @Override
@@ -60,6 +74,24 @@ public class PrivatePost extends Post implements PrivatePublication {
         }
 
         allowedUsers.remove(user);
+        user.removeAccessiblePrivatePublicationInternal(this);
+    }
+
+    @Override
+    public void removeAllowedUserInternal(User user) {
+        if (user != null) {
+            allowedUsers.remove(user);
+        }
+    }
+
+    @Override
+    public void delete() {
+        for (User user : new HashSet<>(allowedUsers)) {
+            user.removeAccessiblePrivatePublicationInternal(this);
+        }
+        allowedUsers.clear();
+
+        super.delete();
     }
     // endregion
 
