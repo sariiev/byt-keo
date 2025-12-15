@@ -60,7 +60,7 @@ public class Message {
 
         ensureContentNotEmpty();
 
-        conversation.addMessage(this);
+        conversation.addMessageInternal(this);
         extent.put(uid, this);
     }
 
@@ -94,7 +94,7 @@ public class Message {
 
         ensureContentNotEmpty();
 
-        conversation.addMessage(this);
+        conversation.addMessageInternal(this);
         extent.put(uid, this);
     }
     // endregion
@@ -216,6 +216,38 @@ public class Message {
         }
 
         attachments.remove(attachment);
+    }
+
+    public static Message sendMessage(User sender, Conversation conversation, String caption, List<MediaAttachment> attachments) {
+        return new Message(sender, conversation, caption, attachments);
+    }
+
+    public void editMessage(String newCaption) {
+        if (isDeleted) {
+            throw new IllegalStateException("Cannot edit a deleted message");
+        }
+        setCaption(newCaption);
+    }
+
+    public void readMessage() {
+        if (!isDeleted) {
+            this.isRead = true;
+        }
+    }
+
+    public void deleteMessage() {
+        this.isDeleted = true;
+    }
+
+    void removeFromConversationInternal() {
+        extent.remove(this.uid);
+    }
+
+    public void delete() {
+        if (conversation != null) {
+            conversation.removeMessageInternal(this);
+        }
+        extent.remove(this.uid);
     }
     // endregion
 
