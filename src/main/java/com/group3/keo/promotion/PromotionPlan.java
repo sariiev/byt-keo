@@ -30,6 +30,8 @@ public class PromotionPlan {
     private final boolean isCustom;
 
     private boolean isActive = true;
+
+    private final Set<PromotionOrder> orders = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -123,7 +125,34 @@ public class PromotionPlan {
     public void setActive(boolean isActive) {
         this.isActive = isActive;
     }
+
+    public Set<PromotionOrder> getOrders() {
+        return Collections.unmodifiableSet(orders);
+    }
     // endregion
+
+    //region == MUTATORS ==
+    public void addOrderInternal(PromotionOrder order) {
+        if (order != null) {
+            orders.add(order);
+        }
+    }
+
+    public void removeOrderInternal(PromotionOrder order) {
+        if (order != null) {
+            orders.remove(order);
+        }
+    }
+
+    public void delete() {
+        for (PromotionOrder order : new HashSet<>(orders)) {
+            order.clearPlanInternal();
+        }
+        orders.clear();
+
+        extent.remove(this.uid);
+    }
+    //endregion
 
     // region === EQUALS & HASHCODE ===
 

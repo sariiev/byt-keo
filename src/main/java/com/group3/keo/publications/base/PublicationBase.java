@@ -37,14 +37,14 @@ public abstract class PublicationBase {
     private UUID uid;
     private final PublicationAuthor author;
     private String caption;
-    private final List<MediaAttachment> attachments = new ArrayList<>();
+    private final Set<MediaAttachment> attachments = new HashSet<>();
     private final LocalDateTime publicationDateTime;
     private int views = 0;
     private boolean wasEdited = false;
 
     private final Set<User> likedBy = new HashSet<>();
     private final List<Comment> comments = new ArrayList<>();
-    private final List<Quote> quotes = new ArrayList<>();
+    private final Set<Quote> quotes = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -61,6 +61,10 @@ public abstract class PublicationBase {
         setCaption(caption);
 
         extent.put(uid, this);
+
+        if (author instanceof User userAuthor) {
+            userAuthor.addPublication(this);
+        }
     }
 
     protected PublicationBase(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, LocalDateTime publicationDateTime, int views, boolean wasEdited) {
@@ -78,6 +82,10 @@ public abstract class PublicationBase {
         setCaption(caption);
 
         extent.put(uid, this);
+
+        if (author instanceof User userAuthor) {
+            userAuthor.addPublication(this);
+        }
     }
     // endregion
 
@@ -162,16 +170,16 @@ public abstract class PublicationBase {
         this.wasEdited = wasEdited;
     }
 
-    public List<MediaAttachment> getAttachments() {
-        return Collections.unmodifiableList(attachments);
+    public Set<MediaAttachment> getAttachments() {
+        return Collections.unmodifiableSet(attachments);
     }
 
     public List<Comment> getComments() {
         return Collections.unmodifiableList(comments);
     }
 
-    public List<Quote> getQuotes() {
-        return Collections.unmodifiableList(quotes);
+    public Set<Quote> getQuotes() {
+        return Collections.unmodifiableSet(quotes);
     }
     // endregion
 
@@ -194,6 +202,7 @@ public abstract class PublicationBase {
         }
 
         attachments.add(attachment);
+        attachment.setPublicationInternal(this);
     }
 
     public void removeAttachment(MediaAttachment attachment) {
@@ -206,6 +215,20 @@ public abstract class PublicationBase {
         }
 
         attachments.remove(attachment);
+        attachment.clearPublicationInternal();
+    }
+
+    void addAttachmentInternal(MediaAttachment attachment) {
+        if (attachment != null && attachments.size() < MAX_ATTACHMENTS_SIZE) {
+            attachments.add(attachment);
+        }
+    }
+
+
+    public void removeAttachmentInternal(MediaAttachment attachment) {
+        if (attachment != null) {
+            attachments.remove(attachment);
+        }
     }
 
     public void addComment(Comment comment) {
@@ -242,22 +265,54 @@ public abstract class PublicationBase {
         if (quote.getReferencedPublication() != this) {
             throw new IllegalArgumentException("Quote does not quote this publication");
         }
-        if (!quotes.contains(quote)) {
+        quotes.add(quote);
+    }
+
+    public void addQuoteInternal(Quote quote) {
+        if (quote != null) {
             quotes.add(quote);
         }
     }
 
-    public void internalRemoveQuote(Quote quote) {
-        quotes.remove(quote);
+    public void removeQuoteInternal(Quote quote) {
+        if (quote != null) {
+            quotes.remove(quote);
+        }
+    }
+
+    public void addLikeInternal(User user) {
+        if (user != null && !likedBy.contains(user)) {
+            likedBy.add(user);
+        }
+    }
+
+    public void removeLikeInternal(User user) {
+        if (user != null) {
+            likedBy.remove(user);
+        }
     }
 
     public void delete() {
+        for (MediaAttachment attachment : new HashSet<>(attachments)) {
+            attachment.clearPublicationInternal();
+        }
+        attachments.clear();
+
         for (Comment comment : new ArrayList<>(comments)) {
             comment.delete();
         }
 
         for (Quote quote : new ArrayList<>(quotes)) {
             quote.detachFromReferencedPublication();
+        }
+
+        for (Quote quote : new HashSet<>(quotes)) {
+            quote.clearReferencedPublicationInternal();
+        }
+        quotes.clear();
+
+        if (author instanceof User userAuthor) {
+            userAuthor.removePublication(this);
         }
 
         extent.remove(this.uid);

@@ -32,7 +32,7 @@ public class Message {
     private boolean wasEdited;
     private boolean isDeleted;
 
-    private final List<MediaAttachment> attachments = new ArrayList<>();
+    private final Set<MediaAttachment> attachments = new HashSet<>();
     private final Conversation conversation;
     private final User sender;
     // endregion
@@ -60,7 +60,7 @@ public class Message {
 
         ensureContentNotEmpty();
 
-        conversation.addMessage(this);
+        conversation.addMessageInternal(this);
         extent.put(uid, this);
     }
 
@@ -94,7 +94,7 @@ public class Message {
 
         ensureContentNotEmpty();
 
-        conversation.addMessage(this);
+        conversation.addMessageInternal(this);
         extent.put(uid, this);
     }
     // endregion
@@ -172,13 +172,14 @@ public class Message {
         this.isDeleted = true;
     }
 
-    public List<MediaAttachment> getAttachments() {
-        return Collections.unmodifiableList(attachments);
+    public Set<MediaAttachment> getAttachments() {
+        return Collections.unmodifiableSet(attachments);
     }
 
     public Conversation getConversation() {
         return conversation;
     }
+
 
     public User getSender() {
         return sender;
@@ -204,6 +205,13 @@ public class Message {
         }
 
         attachments.add(attachment);
+        attachment.setMessageInternal(this);
+    }
+
+    void addAttachmentInternal(MediaAttachment attachment) {
+        if (attachment != null && attachments.size() < MAX_ATTACHMENTS_SIZE) {
+            attachments.add(attachment);
+        }
     }
 
     public void removeAttachment(MediaAttachment attachment) {
@@ -216,6 +224,43 @@ public class Message {
         }
 
         attachments.remove(attachment);
+        attachment.clearMessageInternal();
+    }
+
+    public void removeAttachmentInternal(MediaAttachment attachment) {
+        if (attachment != null) {
+            attachments.remove(attachment);
+        }
+    }
+
+    public static Message sendMessage(User sender, Conversation conversation, String caption, List<MediaAttachment> attachments) {
+        return new Message(sender, conversation, caption, attachments);
+    }
+
+    public void readMessage() {
+        if (!isDeleted) {
+            this.isRead = true;
+        }
+    }
+
+    public void deleteMessage() {
+        this.isDeleted = true;
+    }
+
+    void removeFromConversationInternal() {
+        extent.remove(this.uid);
+    }
+
+    public void delete() {
+        for (MediaAttachment attachment : new HashSet<>(attachments)) {
+            attachment.clearMessageInternal();
+        }
+        attachments.clear();
+
+        if (conversation != null) {
+            conversation.removeMessageInternal(this);
+        }
+        extent.remove(this.uid);
     }
     // endregion
 

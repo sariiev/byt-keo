@@ -21,6 +21,16 @@ public class UserDTO {
     public String phoneNumber;
 
     public List<UUID> followers;
+    public List<UUID> following;
+
+    public List<UUID> publications;
+
+    public List<UUID> sentMessagesTo;
+    public List<UUID> receivedMessagesFrom;
+
+    public List<UUID> likedPublications;
+
+    public List<UUID> conversations;
 
     public static class AddressDTO {
         public String country;

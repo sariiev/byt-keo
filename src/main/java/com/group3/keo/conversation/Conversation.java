@@ -3,6 +3,7 @@ package com.group3.keo.conversation;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.users.User;
 
 import java.io.FileReader;
@@ -18,7 +19,7 @@ public class Conversation {
     // region === FIELDS ===
     private final UUID uid;
     private final Set<User> participants = new HashSet<>();
-    private final List<Message> messages = new ArrayList<>();
+    private final Set<Message> messages = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -40,6 +41,9 @@ public class Conversation {
         this.uid = UUID.randomUUID();
         this.participants.add(user1);
         this.participants.add(user2);
+
+        user1.addConversationInternal(this);
+        user2.addConversationInternal(this);
 
         extent.put(uid, this);
     }
@@ -76,6 +80,10 @@ public class Conversation {
         this.uid = uid;
         this.participants.addAll(new HashSet<>(participants));
 
+        for (User user : participants) {
+            user.addConversationInternal(this);
+        }
+
         extent.put(uid, this);
     }
     // endregion
@@ -89,23 +97,83 @@ public class Conversation {
         return Collections.unmodifiableSet(participants);
     }
 
-    public List<Message> getMessages() {
-        return Collections.unmodifiableList(messages);
+    public Set<Message> getMessages() {
+        return Collections.unmodifiableSet(messages);
+    }
+
+    public static Conversation getConversation(UUID uid) {
+        if (uid == null) {
+            throw new IllegalArgumentException("uid cannot be null");
+        }
+        return extent.get(uid);
     }
     // endregion
 
     // region === MUTATORS ===
-    void addMessage(Message message) {
+    public Message addMessage(User sender, String caption, List<MediaAttachment> attachments) {
+        if (sender == null) {
+            throw new IllegalArgumentException("sender cannot be null");
+        }
+        if (!participants.contains(sender)) {
+            throw new IllegalArgumentException("sender must be a participant of this conversation");
+        }
+
+        return new Message(sender, this, caption, attachments);
+    }
+
+    void addMessageInternal(Message message) {
         if (message == null) {
             throw new IllegalArgumentException("message cannot be null");
         }
         if (message.getConversation() != this) {
             throw new IllegalArgumentException("message.conversation must refer to this Conversation");
         }
+        messages.add(message);
+    }
+
+    public void removeMessage(Message message) {
+        if (message == null) {
+            return;
+        }
         if (!messages.contains(message)) {
-            messages.add(message);
+            return;
+        }
+        if (message.getConversation() != this) {
+            return;
+        }
+
+        messages.remove(message);
+        message.removeFromConversationInternal();
+    }
+
+    void removeMessageInternal(Message message) {
+        if (message != null) {
+            messages.remove(message);
         }
     }
+
+    public void removeParticipantInternal(User user) {
+        if (user != null) {
+            participants.remove(user);
+        }
+    }
+
+    public void delete() {
+        Set<Message> messagesToDelete = new HashSet<>(messages);
+
+        for (Message message : messagesToDelete) {
+            message.delete();
+        }
+        messages.clear();
+
+        for (User participant : participants) {
+            participant.removeConversationInternal(this);
+        }
+        participants.clear();
+
+        extent.remove(this.uid);
+    }
+
     // endregion
 
     // region === EQUALS && HASHCODE ===

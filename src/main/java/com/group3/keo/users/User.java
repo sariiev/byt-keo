@@ -2,8 +2,10 @@ package com.group3.keo.users;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.group3.keo.conversation.Conversation;
 import com.group3.keo.enums.UserType;
 import com.group3.keo.publications.base.PublicationAuthor;
+import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -33,6 +35,16 @@ public abstract class User implements PublicationAuthor {
     private Location location;
 
     private final Set<User> followers = new HashSet<>();
+    private final Set<User> following = new HashSet<>();
+
+    private final Set<PublicationBase> publications = new HashSet<>();
+
+    private final Set<User> sentMessagesTo = new HashSet<>();
+    private final Set<User> receivedMessagesFrom = new HashSet<>();
+
+    private final Set<PublicationBase> likedPublications = new HashSet<>();
+
+    private final Set<Conversation> conversations = new HashSet<>();
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -122,8 +134,28 @@ public abstract class User implements PublicationAuthor {
         return Collections.unmodifiableSet(followers);
     }
 
-    public int getFollowersCount() {
-        return followers.size();
+    public Set<User> getFollowing() {
+        return Collections.unmodifiableSet(following);
+    }
+
+    public Set<PublicationBase> getPublications() {
+        return Collections.unmodifiableSet(publications);
+    }
+
+    public Set<User> getSentMessagesTo() {
+        return Collections.unmodifiableSet(sentMessagesTo);
+    }
+
+    public Set<User> getReceivedMessagesFrom() {
+        return Collections.unmodifiableSet(receivedMessagesFrom);
+    }
+
+    public Set<PublicationBase> getLikedPublications() {
+        return Collections.unmodifiableSet(likedPublications);
+    }
+
+    public Set<Conversation> getConversations() {
+        return Collections.unmodifiableSet(conversations);
     }
 
     public static Map<UUID, User> getExtent() {
@@ -152,19 +184,232 @@ public abstract class User implements PublicationAuthor {
         if (follower == this) {
             throw new IllegalArgumentException("user cannot follow themselves");
         }
+
+        if (followers.contains(follower)) {
+            return;
+        }
+
         followers.add(follower);
+
+        follower.addFollowingInternal(this);
+    }
+
+    private void addFollowingInternal(User userToFollow) {
+        if (userToFollow != null && userToFollow != this) {
+            following.add(userToFollow);
+        }
     }
 
     public void removeFollower(User follower) {
         if (follower == null) {
             return;
         }
+
+        if (!followers.contains(follower)) {
+            return;
+        }
+
         followers.remove(follower);
+
+        follower.removeFollowingInternal(this);
+    }
+
+    private void removeFollowingInternal(User userToUnfollow) {
+        if (userToUnfollow != null) {
+            following.remove(userToUnfollow);
+        }
+    }
+
+    public void follow(User userToFollow) {
+        if (userToFollow == null) {
+            throw new IllegalArgumentException("userToFollow cannot be null");
+        }
+        if (userToFollow == this) {
+            throw new IllegalArgumentException("user cannot follow themselves");
+        }
+
+        if (following.contains(userToFollow)) {
+            return;
+        }
+
+        following.add(userToFollow);
+
+        userToFollow.addFollowerInternal(this);
+    }
+
+    private void addFollowerInternal(User follower) {
+        if (follower != null && follower != this) {
+            followers.add(follower);
+        }
+    }
+
+    public void unfollow(User userToUnfollow) {
+        if (userToUnfollow == null) {
+            return;
+        }
+
+        if (!following.contains(userToUnfollow)) {
+            return;
+        }
+
+        following.remove(userToUnfollow);
+
+        userToUnfollow.removeFollowerInternal(this);
+    }
+
+    private void removeFollowerInternal(User follower) {
+        if (follower != null) {
+            followers.remove(follower);
+        }
+    }
+
+    public void manageUserFollowStatus(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("user cannot be null");
+        }
+        if (user == this) {
+            throw new IllegalArgumentException("user cannot follow themselves");
+        }
+
+        if (following.contains(user)) {
+            unfollow(user);
+        } else {
+            follow(user);
+        }
+    }
+
+    public void addPublication(PublicationBase publication) {
+        if (publication == null) {
+            throw new IllegalArgumentException("publication cannot be null");
+        }
+
+        if (publication.getAuthor() != this) {
+            throw new IllegalArgumentException("this user is not the author of the publication");
+        }
+
+        publications.add(publication);
+    }
+
+    public void removePublication(PublicationBase publication) {
+        if (publication != null) {
+            publications.remove(publication);
+        }
+    }
+
+    public void addMessageRecipient(User recipient) {
+        if (recipient == null) {
+            throw new IllegalArgumentException("Message recipient cannot be null");
+        }
+        if (recipient == this) {
+            throw new IllegalArgumentException("User cannot send messages to themselves");
+        }
+
+        sentMessagesTo.add(recipient);
+
+        recipient.addMessageSenderInternal(this);
+    }
+
+    private void addMessageSenderInternal(User sender) {
+        if (sender != null && sender != this && !receivedMessagesFrom.contains(sender)) {
+            receivedMessagesFrom.add(sender);
+        }
+    }
+
+    public void removeMessageRecipient(User recipient) {
+        if (recipient == null) {
+            return;
+        }
+
+        if (!sentMessagesTo.contains(recipient)) {
+            return;
+        }
+
+        sentMessagesTo.remove(recipient);
+
+        recipient.removeMessageSenderInternal(this);
+    }
+
+    private void removeMessageSenderInternal(User sender) {
+        if (sender != null) {
+            receivedMessagesFrom.remove(sender);
+        }
+    }
+
+    public void likePublication(PublicationBase publication) {
+        if (publication == null) {
+            throw new IllegalArgumentException("Publication cannot be null");
+        }
+
+        if (!likedPublications.contains(publication)) {
+            likedPublications.add(publication);
+
+            publication.addLikeInternal(this);
+        }
+    }
+
+    public void unlikePublication(PublicationBase publication) {
+        if (publication == null) {
+            return;
+        }
+
+        if (!likedPublications.contains(publication)) {
+            return;
+        }
+
+        likedPublications.remove(publication);
+
+        publication.removeLikeInternal(this);
+    }
+
+    public void addConversationInternal(Conversation conversation) {
+        if (conversation != null && !conversations.contains(conversation)) {
+            conversations.add(conversation);
+        }
+    }
+
+    public void removeConversationInternal(Conversation conversation) {
+        if (conversation != null) {
+            conversations.remove(conversation);
+        }
     }
 
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
         // it was created to satisfy association class demonstration
+        Set<User> followingCopy = new HashSet<>(following);
+        Set<User> followersCopy = new HashSet<>(followers);
+        Set<User> sentMessagesToCopy = new HashSet<>(sentMessagesTo);
+        Set<User> receivedMessagesFromCopy = new HashSet<>(receivedMessagesFrom);
+        Set<PublicationBase> likedPublicationsCopy = new HashSet<>(likedPublications);
+        Set<Conversation> conversationsCopy = new HashSet<>(conversations);
+
+        for (User user : followingCopy) {
+            unfollow(user);
+        }
+
+        for (User user : followersCopy) {
+            removeFollower(user);
+        }
+
+        for (User user : sentMessagesToCopy) {
+            removeMessageRecipient(user);
+        }
+
+        for (User user : receivedMessagesFromCopy) {
+            user.removeMessageRecipient(this);
+        }
+
+        for (PublicationBase publication : likedPublicationsCopy) {
+            unlikePublication(publication);
+        }
+
+        for (Conversation conversation : conversationsCopy) {
+            conversation.removeParticipantInternal(this);
+        }
+        conversations.clear();
+
+        publications.clear();
+
         extent.remove(this.uid);
     }
     // endregion
@@ -203,11 +448,29 @@ public abstract class User implements PublicationAuthor {
 
                 for (UserDTO dto : loaded) {
                     User user = extent.get(dto.uid);
-                    if (dto.followers != null) {
-                        for (UUID followerUid : dto.followers) {
-                            User follower = extent.get(followerUid);
-                            if (follower != null) {
-                                user.addFollower(follower);
+                    if (dto.following != null) {
+                        for (UUID followingUid : dto.following) {
+                            User followedUser = extent.get(followingUid);
+                            if (followedUser != null) {
+                                user.follow(followedUser);
+                            }
+                        }
+                    }
+
+                    if (dto.sentMessagesTo != null) {
+                        for (UUID recipientUid : dto.sentMessagesTo) {
+                            User recipient = extent.get(recipientUid);
+                            if (recipient != null) {
+                                user.addMessageRecipient(recipient);
+                            }
+                        }
+                    }
+
+                    if (dto.likedPublications != null) {
+                        for (UUID publicationUid : dto.likedPublications) {
+                            PublicationBase publication = PublicationBase.getExtent().get(publicationUid);
+                            if (publication != null) {
+                                user.likePublication(publication);
                             }
                         }
                     }
@@ -248,6 +511,36 @@ public abstract class User implements PublicationAuthor {
         dto.followers = new ArrayList<>();
         for (User follower : followers) {
             dto.followers.add(follower.uid);
+        }
+
+        dto.following = new ArrayList<>();
+        for (User followedUser : following) {
+            dto.following.add(followedUser.uid);
+        }
+
+        dto.publications = new ArrayList<>();
+        for (PublicationBase publication : publications) {
+            dto.publications.add(publication.getUid());
+        }
+
+        dto.sentMessagesTo = new ArrayList<>();
+        for (User recipient : sentMessagesTo) {
+            dto.sentMessagesTo.add(recipient.uid);
+        }
+
+        dto.receivedMessagesFrom = new ArrayList<>();
+        for (User sender : receivedMessagesFrom) {
+            dto.receivedMessagesFrom.add(sender.uid);
+        }
+
+        dto.likedPublications = new ArrayList<>();
+        for (PublicationBase publication : likedPublications) {
+            dto.likedPublications.add(publication.getUid());
+        }
+
+        dto.conversations = new ArrayList<>();
+        for (Conversation conversation : conversations) {
+            dto.conversations.add(conversation.getUid());
         }
 
         return dto;
