@@ -2,6 +2,7 @@ package com.group3.keo.media;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.group3.keo.conversation.Message;
 import com.group3.keo.enums.MediaAttachmentType;
 import com.group3.keo.enums.MediaFormat;
 import com.group3.keo.utils.Utils;
@@ -43,6 +44,8 @@ public abstract class MediaAttachment {
     private final UUID uid;
     private String source;
     private int fileSize;
+
+    private Message message;
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -51,6 +54,18 @@ public abstract class MediaAttachment {
         setSource(source);
         setFileSize(fileSize);
         extent.put(uid, this);
+    }
+
+    protected MediaAttachment(String source, int fileSize, Message message) {
+        uid = UUID.randomUUID();
+        setSource(source);
+        setFileSize(fileSize);
+        this.message = null;
+        extent.put(uid, this);
+
+        if (message != null) {
+            message.addAttachment(this);
+        }
     }
 
     protected MediaAttachment(UUID uid, String source, int fileSize) {
@@ -88,7 +103,53 @@ public abstract class MediaAttachment {
         }
         this.fileSize = fileSize;
     }
+
+    public Message getMessage() {
+        return message;
+    }
     // endregion
+
+    // region === MUTATORS ===
+    public void setMessageInternal(Message message) {
+        if (this.message != null && message != null && this.message != message) {
+            throw new IllegalStateException(
+                    "MediaAttachment is already attached to another Message. " +
+                            "Remove it from the current Message first."
+            );
+        }
+        this.message = message;
+    }
+
+    public void clearMessageInternal() {
+        this.message = null;
+    }
+
+    public void addAttachments(Message message) {
+        if (message == null) {
+            throw new IllegalArgumentException("message cannot be null");
+        }
+        if (this.message != null && this.message != message) {
+            throw new IllegalStateException(
+                    "MediaAttachment is already attached to another Message. " +
+                            "Remove it from the current Message first."
+            );
+        }
+
+        message.addAttachment(this);
+    }
+
+    public void removeFromMessage() {
+        if (this.message != null) {
+            this.message.removeAttachment(this);
+        }
+    }
+
+    public void delete() {
+        if (message != null) {
+            message.removeAttachmentInternal(this);
+        }
+        extent.remove(this.uid);
+    }
 
     // region === EXTENT ACCESS===
     public static Map<UUID, MediaAttachment> getExtent() {
