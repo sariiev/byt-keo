@@ -6,6 +6,7 @@ import com.group3.keo.conversation.Conversation;
 import com.group3.keo.enums.UserType;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.media.Picture;
+import com.group3.keo.publications.base.PrivatePublication;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.utils.Utils;
@@ -49,6 +50,8 @@ public abstract class User implements PublicationAuthor {
     private final Set<Conversation> conversations = new HashSet<>();
 
     private Picture profilePicture;
+
+    private final Set<PublicationBase> accessiblePrivatePublications = new HashSet<>();
 
     // endregion
 
@@ -187,6 +190,10 @@ public abstract class User implements PublicationAuthor {
 
     public void setProfilePictureInternal(Picture picture) {
         this.profilePicture = picture;
+    }
+
+    public Set<PublicationBase> getAccessiblePrivatePublications() {
+        return new HashSet<>(accessiblePrivatePublications);
     }
 
     public static Map<UUID, User> getExtent() {
@@ -412,6 +419,18 @@ public abstract class User implements PublicationAuthor {
         this.profilePicture = null;
     }
 
+    public void addAccessiblePrivatePublicationInternal(PublicationBase publication) {
+        if (publication != null && publication instanceof PrivatePublication) {
+            accessiblePrivatePublications.add(publication);
+        }
+    }
+
+    public void removeAccessiblePrivatePublicationInternal(PublicationBase publication) {
+        if (publication != null) {
+            accessiblePrivatePublications.remove(publication);
+        }
+    }
+
     public void delete() {
         // this is a simplified delete method (it doesn't remove publications, followers, etc.)
         // it was created to satisfy association class demonstration
@@ -451,6 +470,15 @@ public abstract class User implements PublicationAuthor {
             profilePicture.clearProfilePictureOfInternal();
             profilePicture = null;
         }
+
+        for (PublicationBase publication : new HashSet<>(accessiblePrivatePublications)) {
+            if (publication instanceof PrivatePublication privatePublication) {
+                privatePublication.removeAllowedUserInternal(this);
+            }
+        }
+        accessiblePrivatePublications.clear();
+
+
 
         publications.clear();
 
@@ -595,6 +623,11 @@ public abstract class User implements PublicationAuthor {
 
         if (profilePicture != null) {
             dto.profilePicture = profilePicture.getUid();
+        }
+
+        dto.accessiblePrivatePublications = new ArrayList<>();
+        for (PublicationBase publication : accessiblePrivatePublications) {
+            dto.accessiblePrivatePublications.add(publication.getUid());
         }
 
         return dto;
