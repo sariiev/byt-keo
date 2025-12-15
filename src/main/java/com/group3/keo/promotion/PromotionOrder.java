@@ -20,7 +20,7 @@ public class PromotionOrder {
 
     // region === FIELDS ===
     private final UUID uid;
-    private final PromotionPlan plan;
+    private PromotionPlan plan;
     private final boolean isCustomOrder;
     private final int views;
 
@@ -62,6 +62,8 @@ public class PromotionOrder {
         } else {
             this.plan = plan;
             this.isCustomOrder = false;
+
+            plan.addOrderInternal(this);
         }
 
         this.uid = UUID.randomUUID();
@@ -85,6 +87,10 @@ public class PromotionOrder {
         } else {
             this.plan = plan;
             this.isCustomOrder = false;
+
+            if (plan != null) {
+                plan.addOrderInternal(this);
+            }
         }
 
         this.uid = uid;
@@ -160,7 +166,15 @@ public class PromotionOrder {
     // endregion
 
     // region === MUTATORS ===
+    void clearPlanInternal() {
+        this.plan = null;
+    }
+
     public void delete() {
+        if (plan != null) {
+            plan.removeOrderInternal(this);
+        }
+        
         if (businessUser != null) {
             businessUser.removePromotionOrderInternal(this);
         }
