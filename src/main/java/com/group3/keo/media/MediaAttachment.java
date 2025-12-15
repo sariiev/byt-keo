@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.group3.keo.conversation.Message;
 import com.group3.keo.enums.MediaAttachmentType;
 import com.group3.keo.enums.MediaFormat;
+import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.utils.Utils;
 
 import java.io.FileReader;
@@ -46,6 +47,7 @@ public abstract class MediaAttachment {
     private int fileSize;
 
     private Message message;
+    private PublicationBase publication;
     // endregion
 
     // region === CONSTRUCTORS ===
@@ -53,25 +55,19 @@ public abstract class MediaAttachment {
         uid = UUID.randomUUID();
         setSource(source);
         setFileSize(fileSize);
-        extent.put(uid, this);
-    }
-
-    protected MediaAttachment(String source, int fileSize, Message message) {
-        uid = UUID.randomUUID();
-        setSource(source);
-        setFileSize(fileSize);
         this.message = null;
+        this.publication = null;
         extent.put(uid, this);
-
-        if (message != null) {
-            message.addAttachment(this);
-        }
     }
+
+
 
     protected MediaAttachment(UUID uid, String source, int fileSize) {
         this.uid = uid;
         setSource(source);
         setFileSize(fileSize);
+        this.message = null;
+        this.publication = null;
         extent.put(uid, this);
     }
     // endregion
@@ -106,6 +102,10 @@ public abstract class MediaAttachment {
 
     public Message getMessage() {
         return message;
+    }
+
+    public PublicationBase getPublication() {
+        return publication;
     }
     // endregion
 
@@ -144,9 +144,50 @@ public abstract class MediaAttachment {
         }
     }
 
+    public boolean isAttached() {
+        return message != null || publication != null;
+    }
+
+    public void setPublicationInternal(PublicationBase publication) {
+        if (publication != null && isAttached() && this.publication != publication) {
+            throw new IllegalStateException(
+                    "MediaAttachment is already attached to another owner. " +
+                            "Remove it from the current owner first."
+            );
+        }
+        this.publication = publication;
+    }
+
+    public void clearPublicationInternal() {
+        this.publication = null;
+    }
+
+    public void addAttachments(PublicationBase publication) {
+        if (publication == null) {
+            throw new IllegalArgumentException("publication cannot be null");
+        }
+        if (isAttached() && this.publication != publication) {
+            throw new IllegalStateException(
+                    "MediaAttachment is already attached to another owner. " +
+                            "Remove it from the current owner first."
+            );
+        }
+        publication.addAttachment(this);
+    }
+
+    public void removeFromPublication() {
+        if (this.publication != null) {
+            this.publication.removeAttachment(this);
+        }
+    }
+
     public void delete() {
         if (message != null) {
             message.removeAttachmentInternal(this);
+        }
+
+        if (publication != null) {
+            publication.removeAttachmentInternal(this);
         }
         extent.remove(this.uid);
     }

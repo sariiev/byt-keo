@@ -37,7 +37,7 @@ public abstract class PublicationBase {
     private UUID uid;
     private final PublicationAuthor author;
     private String caption;
-    private final List<MediaAttachment> attachments = new ArrayList<>();
+    private final Set<MediaAttachment> attachments = new HashSet<>();
     private final LocalDateTime publicationDateTime;
     private int views = 0;
     private boolean wasEdited = false;
@@ -170,8 +170,8 @@ public abstract class PublicationBase {
         this.wasEdited = wasEdited;
     }
 
-    public List<MediaAttachment> getAttachments() {
-        return Collections.unmodifiableList(attachments);
+    public Set<MediaAttachment> getAttachments() {
+        return Collections.unmodifiableSet(attachments);
     }
 
     public List<Comment> getComments() {
@@ -202,6 +202,7 @@ public abstract class PublicationBase {
         }
 
         attachments.add(attachment);
+        attachment.setPublicationInternal(this);
     }
 
     public void removeAttachment(MediaAttachment attachment) {
@@ -214,6 +215,20 @@ public abstract class PublicationBase {
         }
 
         attachments.remove(attachment);
+        attachment.clearPublicationInternal();
+    }
+
+    void addAttachmentInternal(MediaAttachment attachment) {
+        if (attachment != null && attachments.size() < MAX_ATTACHMENTS_SIZE) {
+            attachments.add(attachment);
+        }
+    }
+
+
+    public void removeAttachmentInternal(MediaAttachment attachment) {
+        if (attachment != null) {
+            attachments.remove(attachment);
+        }
     }
 
     public void addComment(Comment comment) {
@@ -272,6 +287,11 @@ public abstract class PublicationBase {
     }
 
     public void delete() {
+        for (MediaAttachment attachment : new HashSet<>(attachments)) {
+            attachment.clearPublicationInternal();
+        }
+        attachments.clear();
+
         for (Comment comment : new ArrayList<>(comments)) {
             comment.delete();
         }

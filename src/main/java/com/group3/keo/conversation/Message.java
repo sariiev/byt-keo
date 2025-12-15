@@ -237,13 +237,6 @@ public class Message {
         return new Message(sender, conversation, caption, attachments);
     }
 
-    public void editMessage(String newCaption) {
-        if (isDeleted) {
-            throw new IllegalStateException("Cannot edit a deleted message");
-        }
-        setCaption(newCaption);
-    }
-
     public void readMessage() {
         if (!isDeleted) {
             this.isRead = true;
