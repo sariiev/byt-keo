@@ -449,6 +449,9 @@ public abstract class PublicationBase {
                     }
                 } else {
                     dto.isPrivate = false;
+                    if (q instanceof PublicQuote publicQuote && publicQuote.getPublishedByCommunity() != null) {
+                        dto.publishedByCommunity = publicQuote.getPublishedByCommunity().getUid();
+                    }
                 }
                 dto.referencedPublication = q.getReferencedPublication() != null ? q.getReferencedPublication().getUid() : null;
 
@@ -467,6 +470,9 @@ public abstract class PublicationBase {
                     }
                 } else {
                     dto.isPrivate = false;
+                    if (p instanceof PublicPost publicPost && publicPost.getPublishedByCommunity() != null) {
+                        dto.publishedByCommunity = publicPost.getPublishedByCommunity().getUid();
+                    }
                 }
 
                 yield dto;
@@ -531,6 +537,12 @@ public abstract class PublicationBase {
                     publication = new PrivatePost(dto.uid, (User) author, dto.caption, attachments, allowedUsers, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted);
                 } else {
                     publication = new PublicPost(dto.uid, author, dto.caption, attachments, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted);
+                    if (dto.publishedByCommunity != null) {
+                        Community community = Community.getExtent().get(dto.publishedByCommunity);
+                        if (community != null) {
+                            ((PublicPost) publication).setPublishedByCommunity(community);
+                        }
+                    }
                 }
             }
             case PublicationType.QUOTE -> {
@@ -539,6 +551,12 @@ public abstract class PublicationBase {
                     publication = new PrivateQuote(dto.uid, (User) author, dto.caption, attachments, referencedPublication, allowedUsers, LocalDateTime.parse(dto.publicationDateTime) , dto.views, dto.wasEdited, dto.wasPromoted);
                 } else {
                     publication = new PublicQuote(dto.uid, author, dto.caption, attachments, referencedPublication, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted);
+                    if (dto.publishedByCommunity != null) {
+                        Community community = Community.getExtent().get(dto.publishedByCommunity);
+                        if (community != null) {
+                            ((PublicQuote) publication).setPublishedByCommunity(community);
+                        }
+                    }
                 }
             }
             case PublicationType.COMMENT -> {

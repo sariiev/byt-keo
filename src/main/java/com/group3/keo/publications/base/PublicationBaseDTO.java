@@ -27,4 +27,6 @@ public class PublicationBaseDTO {
 
     public boolean isPrivate;
     public List<UUID> allowedUsers;
+
+    public UUID publishedByCommunity;
 }
