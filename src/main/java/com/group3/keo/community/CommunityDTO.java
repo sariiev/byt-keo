@@ -2,6 +2,7 @@ package com.group3.keo.community;
 
 import com.group3.keo.enums.CommunityTopic;
 
+import java.util.List;
 import java.util.UUID;
 
 public class CommunityDTO {
@@ -9,4 +10,5 @@ public class CommunityDTO {
     public String name;
     public CommunityTopic topic;
     public UUID communityPictureUid;
+    public List<UUID> publications;
 }
