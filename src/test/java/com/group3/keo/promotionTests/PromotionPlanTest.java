@@ -4,7 +4,12 @@ import com.group3.keo.enums.PromotionStatus;
 import com.group3.keo.promotion.PromotionOrder;
 import com.group3.keo.promotion.PromotionPlan;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Map;
+
+import com.group3.keo.publications.posts.PublicPost;
+import com.group3.keo.users.BusinessUser;
+import com.group3.keo.users.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +17,11 @@ import org.junit.jupiter.api.Test;
 public class PromotionPlanTest {
     private PromotionPlan activePlan;
     private PromotionPlan inactivePlan;
+    private BusinessUser user = new BusinessUser("user1", "User1", "Bio1",
+            new User.Address("Poland", "Warsaw", "Koszykowa"),
+            new User.Location(14.13, 21.1), null, null, null);
+    private PublicPost post = new PublicPost(user, "caption", new ArrayList<>());
+
 
     private void clearPromotionOrderExtent() {
         try {
@@ -34,7 +44,7 @@ public class PromotionPlanTest {
 
     @Test
     public void testCreateOrderActivePlan() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         Assertions.assertNotNull(order.getUid());
         Assertions.assertEquals(this.activePlan, order.getPlan());
         Assertions.assertFalse(order.isCustomOrder());
@@ -46,14 +56,14 @@ public class PromotionPlanTest {
     @Test
     public void testCreateOrderInactivePlanException() {
         Assertions.assertThrows(IllegalStateException.class, () -> {
-            new PromotionOrder(this.inactivePlan);
+            new PromotionOrder(this.inactivePlan, user, post);
         });
     }
 
     @Test
     public void testCreateCustomOrder() {
         PromotionPlan customPlan = new PromotionPlan(2000, 1.0);
-        PromotionOrder order = new PromotionOrder(customPlan);
+        PromotionOrder order = new PromotionOrder(customPlan, user, post);
         Assertions.assertTrue(order.isCustomOrder());
         Assertions.assertNull(order.getPlan());
         Assertions.assertEquals(2000, order.getViews());
@@ -62,14 +72,14 @@ public class PromotionPlanTest {
 
     @Test
     public void testSetStatus() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         order.setStatus(PromotionStatus.CANCELED);
         Assertions.assertEquals(PromotionStatus.CANCELED, order.getStatus());
     }
 
     @Test
     public void testSetStatusNullException() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
             order.setStatus((PromotionStatus)null);
         });
@@ -77,7 +87,7 @@ public class PromotionPlanTest {
 
     @Test
     public void testSetStatusAfterCompletedException() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         order.setStatus(PromotionStatus.COMPLETED);
         Assertions.assertThrows(IllegalStateException.class, () -> {
             order.setStatus(PromotionStatus.CANCELED);
@@ -86,7 +96,7 @@ public class PromotionPlanTest {
 
     @Test
     public void testSetStatusAfterCanceledException() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         order.setStatus(PromotionStatus.CANCELED);
         Assertions.assertThrows(IllegalStateException.class, () -> {
             order.setStatus(PromotionStatus.IN_PROGRESS);
@@ -95,19 +105,19 @@ public class PromotionPlanTest {
 
     @Test
     public void testTotalPriceCalculation() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         Assertions.assertEquals((double)this.activePlan.getViews() * this.activePlan.getPricePerView(), order.getTotalPrice());
     }
 
     @Test
     public void testExtentContainsOrder() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         Assertions.assertTrue(PromotionOrder.getExtent().containsKey(order.getUid()));
     }
 
     @Test
     public void testEncapsulation() {
-        PromotionOrder order = new PromotionOrder(this.activePlan);
+        PromotionOrder order = new PromotionOrder(this.activePlan, user, post);
         new PromotionPlan("External", 10, 0.1);
         PromotionPlan externalPlan = new PromotionPlan("Another", 20, 0.2);
         Assertions.assertNotEquals(externalPlan, order.getPlan(), "Changing local variable should not affect PromotionOrder object");
