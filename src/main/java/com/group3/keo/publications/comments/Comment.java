@@ -3,6 +3,7 @@ package com.group3.keo.publications.comments;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
+import com.group3.keo.publications.base.visibility.PublicationVisibility;
 import com.group3.keo.users.User;
 
 import java.time.LocalDateTime;
@@ -63,12 +64,12 @@ public class Comment extends PublicationBase {
 
     @Override
     public void addAllowedUser(User user) {
-        commentedPublication.addAllowedUser(user);
+        throw new UnsupportedOperationException("Comment visibility cannot be modified");
     }
 
     @Override
     public void removeAllowedUser(User user) {
-        commentedPublication.removeAllowedUser(user);
+        throw new UnsupportedOperationException("Comment visibility cannot be modified");
     }
 
     @Override
@@ -81,6 +82,11 @@ public class Comment extends PublicationBase {
     // region === GETTERS & SETTERS ===
     public PublicationBase getCommentedPublication() {
         return commentedPublication;
+    }
+
+    @Override
+    public PublicationVisibility getVisibility() {
+        return commentedPublication.getVisibility();
     }
 
     @Override
