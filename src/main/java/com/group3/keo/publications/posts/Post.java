@@ -4,11 +4,12 @@ import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.promotion.PromotionOrder;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
+import com.group3.keo.publications.base.visibility.PublicationVisibility;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
-public abstract class Post extends PublicationBase {
+public class Post extends PublicationBase {
     // region === FIELDS ===
     protected boolean wasPromoted = false;
 
@@ -16,12 +17,12 @@ public abstract class Post extends PublicationBase {
     // endregion
 
     // region === CONSTRUCTORS ===
-    protected Post(PublicationAuthor author, String caption, List<MediaAttachment> attachments) {
-        super(author, caption, attachments);
+    public Post(PublicationAuthor author, String caption, List<MediaAttachment> attachments, PublicationVisibility visibility) {
+        super(author, caption, attachments, visibility);
     }
 
-    protected Post(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, LocalDateTime publicationDateTime, int views, boolean wasEdited, boolean wasPromoted) {
-        super(uid, author, caption, attachments, publicationDateTime, views, wasEdited);
+    public Post(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, LocalDateTime publicationDateTime, int views, boolean wasEdited, boolean wasPromoted, PublicationVisibility visibility) {
+        super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, visibility);
         this.wasPromoted = wasPromoted;
     }
     // endregion

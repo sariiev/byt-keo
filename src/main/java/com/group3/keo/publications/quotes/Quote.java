@@ -3,6 +3,7 @@ package com.group3.keo.publications.quotes;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
+import com.group3.keo.publications.base.visibility.PublicationVisibility;
 import com.group3.keo.publications.posts.Post;
 
 import java.time.LocalDateTime;
@@ -18,8 +19,8 @@ public class Quote extends Post {
     public Quote(PublicationAuthor author,
                  String caption,
                  List<MediaAttachment> attachments,
-                 PublicationBase referencedPublication) {
-        super(author, caption, attachments);
+                 PublicationBase referencedPublication, PublicationVisibility visibility) {
+        super(author, caption, attachments, visibility);
         if (referencedPublication != null) {
             quotePublication(referencedPublication);
         }
@@ -33,8 +34,9 @@ public class Quote extends Post {
                  LocalDateTime publicationDateTime,
                  int views,
                  boolean wasEdited,
-                 boolean wasPromoted) {
-        super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, wasPromoted);
+                 boolean wasPromoted,
+                 PublicationVisibility visibility) {
+        super(uid, author, caption, attachments, publicationDateTime, views, wasEdited, wasPromoted, visibility);
 
         if (referencedPublication != null) {
             quotePublication(referencedPublication);
