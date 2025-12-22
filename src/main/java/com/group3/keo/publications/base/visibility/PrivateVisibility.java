@@ -38,7 +38,6 @@ public class PrivateVisibility implements PublicationVisibility {
             throw new IllegalArgumentException("user cannot be null");
         }
         allowedUsers.add(user);
-//        user.addAccessiblePrivatePublicationInternal(this);
     }
     public void removeAllowedUser(User user) {
         if (user == null || !allowedUsers.contains(user)) {
@@ -46,7 +45,6 @@ public class PrivateVisibility implements PublicationVisibility {
         }
 
         allowedUsers.remove(user);
-//        user.removeAccessiblePrivatePublicationInternal(this);
     }
 
     public Set<User> getAllowedUsers() {
