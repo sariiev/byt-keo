@@ -7,12 +7,11 @@ import com.group3.keo.community.Community;
 import com.group3.keo.enums.PublicationAuthorType;
 import com.group3.keo.enums.PublicationType;
 import com.group3.keo.media.MediaAttachment;
+import com.group3.keo.publications.base.visibility.PrivateVisibility;
+import com.group3.keo.publications.base.visibility.PublicVisibility;
+import com.group3.keo.publications.base.visibility.PublicationVisibility;
 import com.group3.keo.publications.comments.Comment;
 import com.group3.keo.publications.posts.Post;
-import com.group3.keo.publications.posts.PrivatePost;
-import com.group3.keo.publications.posts.PublicPost;
-import com.group3.keo.publications.quotes.PublicQuote;
-import com.group3.keo.publications.quotes.PrivateQuote;
 import com.group3.keo.publications.quotes.Quote;
 import com.group3.keo.users.User;
 import com.group3.keo.utils.Utils;
@@ -35,7 +34,8 @@ public abstract class PublicationBase {
 
     // region === FIELDS ===
     private UUID uid;
-    private final PublicationAuthor author;
+    private PublicationVisibility visibility;
+    private PublicationAuthor author;
     private String caption;
     private final Set<MediaAttachment> attachments = new HashSet<>();
     private final LocalDateTime publicationDateTime;
@@ -48,7 +48,7 @@ public abstract class PublicationBase {
     // endregion
 
     // region === CONSTRUCTORS ===
-    protected PublicationBase(PublicationAuthor author, String caption, List<MediaAttachment> attachments) {
+    protected PublicationBase(PublicationAuthor author, String caption, List<MediaAttachment> attachments, PublicationVisibility publicationVisibility) {
         if (author == null) {
             throw new IllegalArgumentException("author cannot be null");
         }
@@ -60,14 +60,14 @@ public abstract class PublicationBase {
         addAttachments(attachments);
         setCaption(caption);
 
+        setVisibility(publicationVisibility);
+
         extent.put(uid, this);
 
-        if (author instanceof User userAuthor) {
-            userAuthor.addPublication(this);
-        }
+        author.addPublication(this);
     }
 
-    protected PublicationBase(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, LocalDateTime publicationDateTime, int views, boolean wasEdited) {
+    protected PublicationBase(UUID uid, PublicationAuthor author, String caption, List<MediaAttachment> attachments, LocalDateTime publicationDateTime, int views, boolean wasEdited, PublicationVisibility publicationVisibility) {
         if (author == null) {
             throw new IllegalArgumentException("author cannot be null");
         }
@@ -81,6 +81,8 @@ public abstract class PublicationBase {
         addAttachments(attachments);
         setCaption(caption);
 
+        setVisibility(publicationVisibility);
+
         extent.put(uid, this);
 
         if (author instanceof User userAuthor) {
@@ -92,6 +94,31 @@ public abstract class PublicationBase {
     // region === GETTERS & SETTERS ===
     public UUID getUid() {
         return uid;
+    }
+
+    public boolean isPrivate() {
+        return (visibility instanceof PrivateVisibility);
+    }
+
+    public PublicationVisibility getVisibility() {
+        return visibility;
+    }
+
+    public boolean canView(User user) {
+        return visibility.canView(user);
+    }
+
+    private void setVisibility(PublicationVisibility newVisibility) {
+        if (newVisibility == null) {
+            throw new IllegalArgumentException("visibility cannot be null");
+        }
+
+        if (this.visibility != null) {
+            this.visibility.onEnd(this);
+        }
+
+        this.visibility = newVisibility;
+        this.visibility.onStart(this);
     }
 
     public PublicationAuthor getAuthor() {
@@ -184,6 +211,53 @@ public abstract class PublicationBase {
     // endregion
 
     // region === MUTATORS ===
+    public void addAllowedUser(User user) {
+        if (!(visibility instanceof PrivateVisibility privateVisibility)) {
+            throw new IllegalStateException("Publication is not private");
+        }
+        privateVisibility.addAllowedUser(user);
+    }
+
+    public void removeAllowedUser(User user) {
+        if (!(visibility instanceof PrivateVisibility privateVisibility)) {
+            throw new IllegalStateException("Publication is not private");
+        }
+        privateVisibility.removeAllowedUser(user);
+    }
+
+    public Set<User> getAllowedUsers() {
+        if (!(visibility instanceof PrivateVisibility privateVisibility)) {
+            return Set.of();
+        }
+        return privateVisibility.getAllowedUsers();
+    }
+
+    public void switchToPublic() {
+        if (visibility instanceof PublicVisibility) {
+            return;
+        }
+
+        setVisibility(new PublicVisibility());
+    }
+
+    public void switchToPrivate(Set<User> allowedUsers) {
+        if (author instanceof Community) {
+            throw new IllegalStateException("publication published by community cannot be private");
+        }
+
+        if (allowedUsers == null) {
+            throw new IllegalArgumentException("allowedUsers cannot be null");
+        }
+
+        PrivateVisibility privateVisibility = new PrivateVisibility((User) author);
+
+        for (User user : allowedUsers) {
+            privateVisibility.addAllowedUser(user);
+        }
+
+        setVisibility(privateVisibility);
+    }
+
     private void addAttachments(List<MediaAttachment> attachments) {
         if (attachments == null) return;
 
@@ -292,6 +366,16 @@ public abstract class PublicationBase {
         }
     }
 
+    public void detachFromAuthor() {
+        if (author == null) {
+            return;
+        }
+
+        author.removePublicationInternal(this);
+
+        author = null;
+    }
+
     public void delete() {
         for (MediaAttachment attachment : new HashSet<>(attachments)) {
             attachment.clearPublicationInternal();
@@ -311,9 +395,7 @@ public abstract class PublicationBase {
         }
         quotes.clear();
 
-        if (author instanceof User userAuthor) {
-            userAuthor.removePublication(this);
-        }
+        detachFromAuthor();
 
         extent.remove(this.uid);
     }
@@ -441,7 +523,7 @@ public abstract class PublicationBase {
                 dto.type = PublicationType.QUOTE;
 
                 dto.wasPromoted = q.wasPromoted();
-                if (q instanceof PrivatePublication pp) {
+                if (visibility instanceof PrivateVisibility pp) {
                     dto.isPrivate = true;
                     dto.allowedUsers = new ArrayList<>();
                     for (User user : pp.getAllowedUsers()) {
@@ -449,9 +531,6 @@ public abstract class PublicationBase {
                     }
                 } else {
                     dto.isPrivate = false;
-                    if (q instanceof PublicQuote publicQuote && publicQuote.getPublishedByCommunity() != null) {
-                        dto.publishedByCommunity = publicQuote.getPublishedByCommunity().getUid();
-                    }
                 }
                 dto.referencedPublication = q.getReferencedPublication() != null ? q.getReferencedPublication().getUid() : null;
 
@@ -462,7 +541,7 @@ public abstract class PublicationBase {
                 dto.type = PublicationType.POST;
 
                 dto.wasPromoted = p.wasPromoted();
-                if (p instanceof PrivatePublication pp) {
+                if (visibility instanceof PrivateVisibility pp) {
                     dto.isPrivate = true;
                     dto.allowedUsers = new ArrayList<>();
                     for (User user : pp.getAllowedUsers()) {
@@ -470,9 +549,6 @@ public abstract class PublicationBase {
                     }
                 } else {
                     dto.isPrivate = false;
-                    if (p instanceof PublicPost publicPost && publicPost.getPublishedByCommunity() != null) {
-                        dto.publishedByCommunity = publicPost.getPublishedByCommunity().getUid();
-                    }
                 }
 
                 yield dto;
@@ -534,29 +610,25 @@ public abstract class PublicationBase {
         switch (dto.type) {
             case PublicationType.POST -> {
                 if (dto.isPrivate) {
-                    publication = new PrivatePost(dto.uid, (User) author, dto.caption, attachments, allowedUsers, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted);
-                } else {
-                    publication = new PublicPost(dto.uid, author, dto.caption, attachments, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted);
-                    if (dto.publishedByCommunity != null) {
-                        Community community = Community.getExtent().get(dto.publishedByCommunity);
-                        if (community != null) {
-                            ((PublicPost) publication).setPublishedByCommunity(community);
-                        }
+                    PrivateVisibility publicationVisibility = new PrivateVisibility((User) author);
+                    for (User user : allowedUsers) {
+                        publicationVisibility.addAllowedUser(user);
                     }
+                    publication = new Post(dto.uid, (User) author, dto.caption, attachments, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted, publicationVisibility);
+                } else {
+                    publication = new Post(dto.uid, author, dto.caption, attachments, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted, new PublicVisibility());
                 }
             }
             case PublicationType.QUOTE -> {
                 PublicationBase referencedPublication = PublicationBase.getExtent().get(dto.referencedPublication);
                 if (dto.isPrivate) {
-                    publication = new PrivateQuote(dto.uid, (User) author, dto.caption, attachments, referencedPublication, allowedUsers, LocalDateTime.parse(dto.publicationDateTime) , dto.views, dto.wasEdited, dto.wasPromoted);
-                } else {
-                    publication = new PublicQuote(dto.uid, author, dto.caption, attachments, referencedPublication, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted);
-                    if (dto.publishedByCommunity != null) {
-                        Community community = Community.getExtent().get(dto.publishedByCommunity);
-                        if (community != null) {
-                            ((PublicQuote) publication).setPublishedByCommunity(community);
-                        }
+                    PrivateVisibility publicationVisibility = new PrivateVisibility((User) author);
+                    for (User user : allowedUsers) {
+                        publicationVisibility.addAllowedUser(user);
                     }
+                    publication = new Quote(dto.uid, (User) author, dto.caption, attachments, referencedPublication, LocalDateTime.parse(dto.publicationDateTime) , dto.views, dto.wasEdited, dto.wasPromoted, publicationVisibility);
+                } else {
+                    publication = new Quote(dto.uid, author, dto.caption, attachments, referencedPublication, LocalDateTime.parse(dto.publicationDateTime), dto.views, dto.wasEdited, dto.wasPromoted, new PublicVisibility());
                 }
             }
             case PublicationType.COMMENT -> {

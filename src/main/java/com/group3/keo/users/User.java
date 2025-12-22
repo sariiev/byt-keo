@@ -6,7 +6,7 @@ import com.group3.keo.conversation.Conversation;
 import com.group3.keo.enums.UserType;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.media.Picture;
-import com.group3.keo.publications.base.PrivatePublication;
+import com.group3.keo.publications.base.visibility.PrivateVisibility;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.utils.Utils;
@@ -420,7 +420,7 @@ public abstract class User implements PublicationAuthor {
     }
 
     public void addAccessiblePrivatePublicationInternal(PublicationBase publication) {
-        if (publication != null && publication instanceof PrivatePublication) {
+        if (publication != null && publication.isPrivate()) {
             accessiblePrivatePublications.add(publication);
         }
     }
@@ -472,13 +472,15 @@ public abstract class User implements PublicationAuthor {
         }
 
         for (PublicationBase publication : new HashSet<>(accessiblePrivatePublications)) {
-            if (publication instanceof PrivatePublication privatePublication) {
-                privatePublication.removeAllowedUserInternal(this);
+            if (publication.isPrivate()) {
+                publication.removeAllowedUser(this);
             }
         }
         accessiblePrivatePublications.clear();
 
-
+        for (PublicationBase publication : new HashSet<>(publications)) {
+            publication.detachFromAuthor();
+        }
 
         publications.clear();
 
@@ -559,6 +561,12 @@ public abstract class User implements PublicationAuthor {
             ex.printStackTrace();
         }
     }
+
+    @Override
+    public void removePublicationInternal(PublicationBase publication) {
+        publications.remove(publication);
+    }
+
     // endregion
 
     // region === DTO CONVERSION ===
