@@ -7,7 +7,7 @@ import com.group3.keo.enums.CommunityTopic;
 import com.group3.keo.enums.RoleType;
 import com.group3.keo.media.MediaAttachment;
 import com.group3.keo.media.Picture;
-import com.group3.keo.publications.base.PublicPublication;
+import com.group3.keo.publications.base.visibility.PublicVisibility;
 import com.group3.keo.publications.base.PublicationAuthor;
 import com.group3.keo.publications.base.PublicationBase;
 import com.group3.keo.users.PersonalUser;
@@ -180,7 +180,7 @@ public class Community implements PublicationAuthor {
             throw new IllegalArgumentException("publication cannot be null");
         }
 
-        if (!(publication instanceof PublicPublication)) {
+        if (publication.isPrivate()) {
             throw new IllegalArgumentException("publication must be a PublicPublication");
         }
 
@@ -188,9 +188,7 @@ public class Community implements PublicationAuthor {
             return;
         }
 
-        PublicPublication publicPub = (PublicPublication) publication;
-
-        if (publicPub.getPublishedByCommunity() != null && publicPub.getPublishedByCommunity() != this) {
+        if (publication.getAuthor() != this) {
             throw new IllegalStateException(
                     "Publication is already published by another community. " +
                             "Remove it from the current community first."
@@ -198,8 +196,6 @@ public class Community implements PublicationAuthor {
         }
 
         publications.add(publication);
-
-        publicPub.setPublishedByCommunityInternal(this);
     }
 
     public void removePublication(PublicationBase publication) {
@@ -208,21 +204,11 @@ public class Community implements PublicationAuthor {
         }
 
         publications.remove(publication);
-
-        if (publication instanceof PublicPublication publicPub) {
-            publicPub.clearPublishedByCommunityInternal();
-        }
     }
 
     public void addPublicationInternal(PublicationBase publication) {
-        if (publication != null && publication instanceof PublicPublication) {
+        if (publication != null && !publication.isPrivate()) {
             publications.add(publication);
-        }
-    }
-
-    public void removePublicationInternal(PublicationBase publication) {
-        if (publication != null) {
-            publications.remove(publication);
         }
     }
 
@@ -233,9 +219,7 @@ public class Community implements PublicationAuthor {
         }
 
         for (PublicationBase publication : new HashSet<>(publications)) {
-            if (publication instanceof PublicPublication publicPub) {
-                publicPub.clearPublishedByCommunityInternal();
-            }
+            publication.detachFromAuthor();
         }
         publications.clear();
 
@@ -244,6 +228,12 @@ public class Community implements PublicationAuthor {
         }
         extent.remove(this.uid);
     }
+
+    @Override
+    public void removePublicationInternal(PublicationBase publication) {
+        publications.remove(publication);
+    }
+
     // endregion
 
     // region === HELPERS ===
@@ -368,7 +358,7 @@ public class Community implements PublicationAuthor {
         if (dto.publications != null) {
             for (UUID publicationUid : dto.publications) {
                 PublicationBase publication = PublicationBase.getExtent().get(publicationUid);
-                if (publication != null && publication instanceof PublicPublication) {
+                if (publication != null && !publication.isPrivate()) {
                     community.addPublication(publication);
                 }
             }
