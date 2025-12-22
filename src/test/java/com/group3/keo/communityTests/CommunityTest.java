@@ -9,15 +9,18 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.UUID;
+
+import com.group3.keo.users.PersonalUser;
+import com.group3.keo.users.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class CommunityTest {
     private Picture pic;
-
-    public CommunityTest() {
-    }
+    private PersonalUser user = new PersonalUser("user1", "User1", "Bio1",
+            new User.Address("Poland", "Warsaw", "Koszykowa"),
+            new User.Location(14.13, 21.1));
 
     private void clearCommunityExtent() {
         try {
@@ -62,16 +65,16 @@ public class CommunityTest {
 
     @Test
     public void testAttributesInitialization() {
-        Community c = new Community("Business", CommunityTopic.BUSINESS, this.pic);
+        Community c = new Community("Business", CommunityTopic.BUSINESS, this.pic, user);
         Assertions.assertEquals("Business", c.getName());
         Assertions.assertEquals(CommunityTopic.BUSINESS, c.getTopic());
-        Assertions.assertEquals(this.pic, c.getAvatar());
+        Assertions.assertEquals(this.pic, c.getCommunityPicture());
         Assertions.assertNotNull(c.getUid());
     }
 
     @Test
     public void testSetNameEmptyException() {
-        Community c = new Community("Tech", CommunityTopic.TECHNOLOGY, this.pic);
+        Community c = new Community("Tech", CommunityTopic.TECHNOLOGY, this.pic, user);
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
             c.setName("");
         });
@@ -79,7 +82,7 @@ public class CommunityTest {
 
     @Test
     public void testSetNameTooLongException() {
-        Community c = new Community("Tech", CommunityTopic.TECHNOLOGY, this.pic);
+        Community c = new Community("Tech", CommunityTopic.TECHNOLOGY, this.pic, user);
         String longName = "Toooooooooooooooooo long";
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
             c.setName(longName);
@@ -88,7 +91,7 @@ public class CommunityTest {
 
     @Test
     public void testSetTopicNullException() {
-        Community c = new Community("Tech", CommunityTopic.TECHNOLOGY, this.pic);
+        Community c = new Community("Tech", CommunityTopic.TECHNOLOGY, this.pic, user);
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
             c.setTopic((CommunityTopic)null);
         });
@@ -96,7 +99,7 @@ public class CommunityTest {
 
     @Test
     public void testExtentContainsCreatedObject() {
-        Community c = new Community("Sports", CommunityTopic.SPORTS, this.pic);
+        Community c = new Community("Sports", CommunityTopic.SPORTS, this.pic, user);
         Map<UUID, Community> extent = Community.getExtent();
         Assertions.assertEquals(1, extent.size());
         Assertions.assertTrue(extent.containsKey(c.getUid()));
@@ -104,7 +107,7 @@ public class CommunityTest {
 
     @Test
     public void testEncapsulation() {
-        Community c = new Community("Art", CommunityTopic.ART, this.pic);
+        Community c = new Community("Art", CommunityTopic.ART, this.pic, user);
         String externalName = "Art";
         externalName = "Changed";
         Assertions.assertNotEquals(externalName, c.getName(), "Changing the external variable should not change the object inside Community");
@@ -112,7 +115,7 @@ public class CommunityTest {
 
     @Test
     public void testExtentPersistence() throws Exception {
-        new Community("Science", CommunityTopic.SCIENCE, this.pic);
+        new Community("Science", CommunityTopic.SCIENCE, this.pic, user);
         File tempFile = Files.createTempFile("community_test", ".json").toFile();
         Community.saveExtent(tempFile.getAbsolutePath());
         this.clearCommunityExtent();
@@ -122,6 +125,6 @@ public class CommunityTest {
         Community loaded = (Community)Community.getExtent().values().iterator().next();
         Assertions.assertEquals("Science", loaded.getName());
         Assertions.assertEquals(CommunityTopic.SCIENCE, loaded.getTopic());
-        Assertions.assertEquals(this.pic.getUid(), loaded.getAvatar().getUid());
+        Assertions.assertEquals(this.pic.getUid(), loaded.getCommunityPicture().getUid());
     }
 }
